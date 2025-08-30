@@ -1,0 +1,32 @@
+{
+  "title": "Marketplace",
+  "browse": "Browse Products",
+  "product": {
+    "title": "Product",
+    "price": "Price",
+    "stock": "In Stock",
+    "description": "Description",
+    "add_to_cart": "Add to Cart",
+    "out_of_stock": "Out of Stock"
+  },
+  "cart": {
+    "title": "Shopping Cart",
+    "empty": "Your cart is empty",
+    "quantity": "Quantity",
+    "total": "Total",
+    "checkout": "Checkout",
+    "item_added": "Item added to cart"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "pay_with_frc": "Pay with Farsi Coin",
+    "order_summary": "Order Summary",
+    "processing": "Processing payment..."
+  },
+  "orders": {
+    "title": "My Orders",
+    "status": "Status",
+    "date": "Date",
+    "no_orders": "No orders found"
+  }
+}

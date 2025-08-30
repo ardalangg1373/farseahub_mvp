@@ -1,0 +1,33 @@
+{
+  "nav": {
+    "home": "Home",
+    "marketplace": "Marketplace", 
+    "tourism": "Tourism",
+    "dating": "Dating",
+    "profile": "Profile",
+    "logout": "Logout",
+    "login": "Login"
+  },
+  "buttons": {
+    "save": "Save",
+    "cancel": "Cancel", 
+    "submit": "Submit",
+    "back": "Back",
+    "next": "Next",
+    "edit": "Edit",
+    "delete": "Delete",
+    "view": "View",
+    "close": "Close"
+  },
+  "forms": {
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "required": "This field is required",
+    "invalid_email": "Please enter a valid email address"
+  },
+  "language": "Language",
+  "loading": "Loading...",
+  "error": "Error",
+  "success": "Success"
+}

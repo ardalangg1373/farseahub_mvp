@@ -1,0 +1,33 @@
+{
+  "nav": {
+    "home": "خانه",
+    "marketplace": "بازار",
+    "tourism": "گردشگری", 
+    "dating": "آشنایی",
+    "profile": "پروفایل",
+    "logout": "خروج",
+    "login": "ورود"
+  },
+  "buttons": {
+    "save": "ذخیره",
+    "cancel": "انصراف",
+    "submit": "ارسال", 
+    "back": "بازگشت",
+    "next": "بعدی",
+    "edit": "ویرایش",
+    "delete": "حذف",
+    "view": "مشاهده",
+    "close": "بستن"
+  },
+  "forms": {
+    "email": "ایمیل",
+    "password": "رمز عبور",
+    "name": "نام",
+    "required": "این فیلد الزامی است",
+    "invalid_email": "لطفاً یک ایمیل معتبر وارد کنید"
+  },
+  "language": "زبان",
+  "loading": "در حال بارگذاری...",
+  "error": "خطا",
+  "success": "موفقیت"
+}

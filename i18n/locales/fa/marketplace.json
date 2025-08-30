@@ -1,0 +1,32 @@
+{
+  "title": "بازار",
+  "browse": "مشاهدهٔ محصولات",
+  "product": {
+    "title": "محصول",
+    "price": "قیمت", 
+    "stock": "موجود در انبار",
+    "description": "توضیحات",
+    "add_to_cart": "افزودن به سبد",
+    "out_of_stock": "ناموجود"
+  },
+  "cart": {
+    "title": "سبد خرید",
+    "empty": "سبد خرید شما خالی است",
+    "quantity": "تعداد",
+    "total": "مجموع",
+    "checkout": "پرداخت",
+    "item_added": "کالا به سبد اضافه شد"
+  },
+  "checkout": {
+    "title": "پرداخت",
+    "pay_with_frc": "پرداخت با فارسی‌کوین",
+    "order_summary": "خلاصه سفارش",
+    "processing": "در حال پردازش پرداخت..."
+  },
+  "orders": {
+    "title": "سفارش‌های من",
+    "status": "وضعیت",
+    "date": "تاریخ", 
+    "no_orders": "سفارشی یافت نشد"
+  }
+}

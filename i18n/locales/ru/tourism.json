@@ -1,0 +1,16 @@
+{
+  "destinations": "Направления",
+  "tours": "Туры",
+  "book_tour": "Забронировать тур",
+  "guide": "Гид",
+  "duration": "Продолжительность",
+  "capacity": "Вместимость",
+  "available_dates": "Доступные даты",
+  "booking_confirmed": "Бронирование подтверждено",
+  "places_to_visit": "Места для посещения",
+  "cultural_sites": "Культурные объекты",
+  "historical_places": "Исторические места",
+  "unesco_sites": "Объекты ЮНЕСКО",
+  "city": "Город",
+  "country": "Страна"
+}

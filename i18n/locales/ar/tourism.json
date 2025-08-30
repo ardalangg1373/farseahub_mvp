@@ -1,0 +1,16 @@
+{
+  "destinations": "الوجهات",
+  "tours": "الجولات",
+  "book_tour": "احجز جولة",
+  "guide": "المرشد",
+  "duration": "المدة",
+  "capacity": "السعة",
+  "available_dates": "التواريخ المتاحة",
+  "booking_confirmed": "تم تأكيد الحجز",
+  "places_to_visit": "أماكن للزيارة",
+  "cultural_sites": "المواقع الثقافية",
+  "historical_places": "الأماكن التاريخية",
+  "unesco_sites": "مواقع اليونسكو",
+  "city": "المدينة",
+  "country": "البلد"
+}

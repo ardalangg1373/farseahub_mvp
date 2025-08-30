@@ -1,0 +1,295 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  role      String   @default("USER")
+  password  String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  products      Product[]
+  orders        Order[]
+  tourSessions  TourSession[]
+  bookings      Booking[]
+  profile       Profile?
+  likesGiven    Like[]        @relation("LikesGiven")
+  likesReceived Like[]        @relation("LikesReceived")
+  matchesA      Match[]       @relation("MatchUserA")
+  matchesB      Match[]       @relation("MatchUserB")
+  sentMessages  Message[]     @relation("SentMessages")
+  blocks        Block[]       @relation("BlocksGiven")
+  reports       Report[]      @relation("ReportsGiven")
+  reviews       Review[]
+
+  @@map("users")
+}
+
+// Marketplace Models
+model Product {
+  id          String    @id @default(uuid())
+  sellerId    String    @map("seller_id")
+  title       String
+  description String?
+  priceCents  Int       @map("price_cents")
+  currency    String    @default("USD")
+  stock       Int       @default(0)
+  images      Json?
+  attrs       Json?
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  seller     User        @relation(fields: [sellerId], references: [id])
+  orderItems OrderItem[]
+
+  @@map("products")
+}
+
+model Order {
+  id             String      @id @default(uuid())
+  buyerId        String      @map("buyer_id")
+  status         OrderStatus @default(PENDING)
+  subtotalCents  Int         @map("subtotal_cents")
+  currency       String      @default("USD")
+  paymentMethod  String?     @map("payment_method")
+  paymentRef     String?     @map("payment_ref")
+  createdAt      DateTime    @default(now()) @map("created_at")
+
+  buyer  User        @relation(fields: [buyerId], references: [id])
+  items  OrderItem[]
+  payment Payment?
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id         String @id @default(uuid())
+  orderId    String @map("order_id")
+  productId  String @map("product_id")
+  quantity   Int
+  priceCents Int    @map("price_cents")
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+enum OrderStatus {
+  PENDING
+  REQUIRES_PAYMENT
+  PAID
+  FAILED
+  CANCELLED
+  FULFILLED
+}
+
+// Tourism Models
+model Place {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  city        String?
+  country     String?
+  lat         Float?
+  lng         Float?
+  images      Json?
+  tags        String[]
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  tours   Tour[]
+  reviews Review[]
+
+  @@map("places")
+}
+
+model Tour {
+  id           String @id @default(uuid())
+  placeId      String @map("place_id")
+  title        String
+  description  String?
+  durationMin  Int    @map("duration_min")
+  basePriceCents Int  @map("base_price_cents")
+  active       Boolean @default(true)
+
+  place    Place         @relation(fields: [placeId], references: [id])
+  sessions TourSession[]
+
+  @@map("tours")
+}
+
+model TourSession {
+  id         String   @id @default(uuid())
+  tourId     String   @map("tour_id")
+  guideId    String   @map("guide_id")
+  startTime  DateTime @map("start_time")
+  capacity   Int
+  seatsTaken Int      @default(0) @map("seats_taken")
+  priceCents Int?     @map("price_cents")
+  active     Boolean  @default(true)
+
+  tour     Tour      @relation(fields: [tourId], references: [id])
+  guide    User      @relation(fields: [guideId], references: [id])
+  bookings Booking[]
+
+  @@map("tour_sessions")
+}
+
+model Booking {
+  id            String        @id @default(uuid())
+  sessionId     String        @map("session_id")
+  userId        String        @map("user_id")
+  seats         Int           @default(1)
+  status        BookingStatus @default(PENDING)
+  totalCents    Int           @map("total_cents")
+  paymentRef    String?       @map("payment_ref")
+  createdAt     DateTime      @default(now()) @map("created_at")
+
+  session TourSession @relation(fields: [sessionId], references: [id])
+  user    User        @relation(fields: [userId], references: [id])
+  payment Payment?
+
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+model Review {
+  id       String @id @default(uuid())
+  placeId  String @map("place_id")
+  userId   String @map("user_id")
+  rating   Int
+  comment  String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  place Place @relation(fields: [placeId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@map("reviews")
+}
+
+// Dating Models
+model Profile {
+  id          String   @id @default(uuid())
+  userId      String   @unique @map("user_id")
+  displayName String   @map("display_name")
+  age         Int
+  gender      String?
+  bio         String?
+  city        String?
+  interests   String[]
+  photos      Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("profiles")
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  fromId    String   @map("from_id")
+  toId      String   @map("to_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  from User @relation("LikesGiven", fields: [fromId], references: [id])
+  to   User @relation("LikesReceived", fields: [toId], references: [id])
+
+  @@unique([fromId, toId])
+  @@map("likes")
+}
+
+model Match {
+  id        String   @id @default(uuid())
+  userAId   String   @map("user_a_id")
+  userBId   String   @map("user_b_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  userA    User      @relation("MatchUserA", fields: [userAId], references: [id])
+  userB    User      @relation("MatchUserB", fields: [userBId], references: [id])
+  messages Message[]
+
+  @@unique([userAId, userBId])
+  @@map("matches")
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  matchId   String   @map("match_id")
+  senderId  String   @map("sender_id")
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  match  Match @relation(fields: [matchId], references: [id])
+  sender User  @relation("SentMessages", fields: [senderId], references: [id])
+
+  @@map("messages")
+}
+
+model Block {
+  id        String   @id @default(uuid())
+  fromId    String   @map("from_id")
+  toId      String   @map("to_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  from User @relation("BlocksGiven", fields: [fromId], references: [id])
+
+  @@unique([fromId, toId])
+  @@map("blocks")
+}
+
+model Report {
+  id        String   @id @default(uuid())
+  fromId    String   @map("from_id")
+  toId      String   @map("to_id")
+  reason    String
+  comment   String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  from User @relation("ReportsGiven", fields: [fromId], references: [id])
+
+  @@map("reports")
+}
+
+// Payment Models
+model Payment {
+  id         String        @id @default(uuid())
+  orderId    String?       @unique @map("order_id")
+  bookingId  String?       @unique @map("booking_id")
+  amountCents Int          @map("amount_cents")
+  currency   String        @default("USD")
+  status     PaymentStatus @default(PENDING)
+  gateway    String        @default("farsicoin")
+  reference  String?
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
+
+  order   Order?   @relation(fields: [orderId], references: [id])
+  booking Booking? @relation(fields: [bookingId], references: [id])
+
+  @@map("payments")
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  CANCELLED
+}
