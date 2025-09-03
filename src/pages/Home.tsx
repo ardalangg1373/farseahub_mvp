@@ -1,13 +1,12 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingBag, MapPin, Heart, Users, Star, ArrowRight, Globe, Shield, Zap, Sparkles, Play, Youtube } from 'lucide-react';
+import { ShoppingBag, MapPin, Heart, Users, Star, ArrowRight, Globe, Shield, Zap, Sparkles, Youtube } from 'lucide-react';
 
 /* ======================= */
-/* Helpers added (lightweight) */
+/* Helpers */
 /* ======================= */
 
 // Reveal on scroll using IntersectionObserver
@@ -56,13 +55,10 @@ function HeroVideo() {
         loop
         playsInline
         preload="auto"
-        src="/videos/farsicoin-360.mp4"   {/* <-- replace with your actual path */}
-        poster="/videos/farsicoin-poster.jpg"
+        src="/comp.mp4"
       />
       <div className="absolute inset-0 bg-black/30" />
-      <div className="relative z-10 flex h-[100svh] items-end justify-center pb-10 md:items-center md:pb-0">
-        {/* Optional: scroll hint or minimal caption can go here */}
-      </div>
+      <div className="relative z-10 flex h-[100svh] items-end justify-center pb-10 md:items-center md:pb-0" />
     </section>
   );
 }
@@ -103,37 +99,43 @@ const Home = () => {
     {
       image: '/assets/marketplace.png',
       title: 'Persian Marketplace',
-      description: 'Shop authentic Persian products, handcrafted items, and cultural goods from verified sellers around the world. Experience traditional bazaar shopping in a modern digital environment.',
+      description:
+        'Shop authentic Persian products, handcrafted items, and cultural goods from verified sellers around the world. Experience traditional bazaar shopping in a modern digital environment.',
       link: '/marketplace'
     },
     {
       image: '/assets/tourism.png',
       title: 'Cultural Tourism',
-      description: "Discover Iran's magnificent heritage sites, book guided cultural tours, and explore ancient Persian civilization through immersive travel experiences.",
+      description:
+        "Discover Iran's magnificent heritage sites, book guided cultural tours, and explore ancient Persian civilization through immersive travel experiences.",
       link: '/tourism'
     },
     {
       image: '/assets/metaverse.png',
       title: 'Metaverse World',
-      description: 'Enter virtual Persian environments, attend digital cultural events, and experience the future of Persian community interaction in our immersive 3D world.',
+      description:
+        'Enter virtual Persian environments, attend digital cultural events, and experience the future of Persian community interaction in our immersive 3D world.',
       link: '/metaverse'
     },
     {
       image: '/assets/gaming_rewards.png',
       title: 'Gaming & Rewards',
-      description: 'Earn rewards through gamified experiences, participate in Persian cultural challenges, and unlock exclusive benefits within our community ecosystem.',
+      description:
+        'Earn rewards through gamified experiences, participate in Persian cultural challenges, and unlock exclusive benefits within our community ecosystem.',
       link: '/marketplace'
     },
     {
       image: '/assets/vip_experiences.png',
       title: 'VIP Experiences',
-      description: 'Access exclusive Persian cultural events, premium tours, private cultural sessions, and connect with notable figures in the Persian community.',
+      description:
+        'Access exclusive Persian cultural events, premium tours, private cultural sessions, and connect with notable figures in the Persian community.',
       link: '/tourism'
     },
     {
       image: '/assets/partnerships.png',
       title: 'Strategic Partnerships',
-      description: 'Collaborate with Persian businesses, cultural organizations, and community leaders to expand opportunities and strengthen our global network.',
+      description:
+        'Collaborate with Persian businesses, cultural organizations, and community leaders to expand opportunities and strengthen our global network.',
       link: '/marketplace'
     }
   ];
@@ -165,11 +167,10 @@ const Home = () => {
 
   return (
     <div className="min-h-screen">
-
-      {/* ✨ New: Video hero added at the very top */}
+      {/* ✨ Video hero at the very top */}
       <HeroVideo />
 
-      {/* ✨ New: Scroll-to-reveal tagline */}
+      {/* ✨ Scroll-to-reveal tagline */}
       <section className="py-16 md:py-24">
         <Reveal>
           <h1
@@ -181,7 +182,7 @@ const Home = () => {
         </Reveal>
       </section>
 
-      {/* Hero Section (kept as-is) */}
+      {/* Hero Section */}
       <section className="relative py-20 px-4 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950 dark:via-purple-950 dark:to-pink-950">
         <div className="container mx-auto text-center">
           <Badge variant="secondary" className="mb-4">
@@ -216,9 +217,7 @@ const Home = () => {
       <section className="py-20 px-4">
         <div className="container mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Everything Persian in One Place
-            </h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Everything Persian in One Place</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               From shopping authentic goods to planning cultural trips, finding love, and exploring virtual worlds - FarSeaHub brings the Persian community together.
             </p>
@@ -228,15 +227,18 @@ const Home = () => {
             {mainFeatures.map((feature, index) => {
               const Icon = feature.icon;
               return (
-                <Card key={index} className="group hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+                <Card
+                  key={index}
+                  className="group hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800"
+                >
                   <CardHeader>
-                    <div className={`w-12 h-12 rounded-lg ${feature.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                    <div
+                      className={`w-12 h-12 rounded-lg ${feature.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}
+                    >
                       <Icon className="h-6 w-6 text-white" />
                     </div>
                     <CardTitle className="text-xl">{feature.title}</CardTitle>
-                    <CardDescription className="text-base">
-                      {feature.description}
-                    </CardDescription>
+                    <CardDescription className="text-base">{feature.description}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <Link to={feature.link}>
@@ -257,9 +259,7 @@ const Home = () => {
       <section className="py-20 px-4 bg-muted/30">
         <div className="container mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Discover Our Features
-            </h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Discover Our Features</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Explore the comprehensive features that make FarSeaHub your ultimate destination for Persian culture and community.
             </p>
@@ -285,9 +285,7 @@ const Home = () => {
                 </div>
                 <CardHeader>
                   <CardTitle className="text-xl">{feature.title}</CardTitle>
-                  <CardDescription className="text-base leading-relaxed">
-                    {feature.description}
-                  </CardDescription>
+                  <CardDescription className="text-base leading-relaxed">{feature.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Link to={feature.link}>
@@ -325,9 +323,7 @@ const Home = () => {
       <section className="py-20 px-4">
         <div className="container mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Why Choose FarSeaHub?
-            </h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose FarSeaHub?</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               We're more than just a platform - we're a community dedicated to preserving and celebrating Persian culture.
             </p>
@@ -358,9 +354,7 @@ const Home = () => {
               <Youtube className="h-3 w-3 mr-1" />
               Watch Demo
             </Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Experience FarSeaHub Metaverse
-            </h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Experience FarSeaHub Metaverse</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
               Watch our exclusive demo video showcasing the immersive Metaverse experience and discover how Persian culture comes alive in virtual reality.
             </p>
@@ -370,51 +364,13 @@ const Home = () => {
             <Card className="overflow-hidden border-2 border-red-200 dark:border-red-800">
               <div className="aspect-video bg-gradient-to-br from-red-100 to-pink-100 dark:from-red-900 dark:to-pink-900 flex items-center justify-center relative group cursor-pointer">
                 <div className="text-center">
-                  <div className="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform">
-                    <Play className="h-10 w-10 text-white ml-1" />
+                  <div className="rounded-full bg-red-600 text-white inline-flex p-4">
+                    <Play className="h-8 w-8" />
                   </div>
-                  <h3 className="text-2xl font-bold mb-2">FarSeaHub Metaverse Demo</h3>
-                  <p className="text-muted-foreground">Click to watch our exclusive preview</p>
+                  <p className="mt-4 text-lg font-medium">Watch on YouTube</p>
                 </div>
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors"></div>
               </div>
-              <CardContent className="p-6">
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button size="lg" className="bg-red-600 hover:bg-red-700">
-                    <Youtube className="mr-2 h-5 w-5" />
-                    Watch on YouTube
-                  </Button>
-                  <Button variant="outline" size="lg">
-                    <ArrowRight className="mr-2 h-4 w-4" />
-                    Learn More
-                  </Button>
-                </div>
-              </CardContent>
             </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-purple-600">
-        <div className="container mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Ready to Join Our Community?
-          </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Start your journey with FarSeaHub today. Discover, connect, and celebrate Persian culture like never before.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/signup">
-              <Button size="lg" variant="secondary" className="w-full sm:w-auto">
-                Create Account
-              </Button>
-            </Link>
-            <Link to="/marketplace">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto border-white text-white hover:bg-white hover:text-blue-600">
-                Start Exploring
-              </Button>
-            </Link>
           </div>
         </div>
       </section>
@@ -423,5 +379,3 @@ const Home = () => {
 };
 
 export default Home;
-
-
