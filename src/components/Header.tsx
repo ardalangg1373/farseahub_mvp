@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -24,13 +25,14 @@ const Header = () => {
       <div className="container flex h-16 items-center justify-between">
         {/* Logo + Brand */}
         <Link to="/" className="flex items-center space-x-3">
+          {/* Updated per Step 3: use /logoasli1373.png */}
           <img
-            src="/assets/website_logo.jpg"
-            alt="FarSeaHub Logo"
-            className="h-10 w-auto"
+            src="/logoasli1373.png"
+            alt="FarsiHub"
+            style={{ height: 36 }}
             onError={(e) => {
               // Fallback to text logo if image fails to load
-              const target = e.currentTarget;
+              const target = e.currentTarget as HTMLImageElement;
               target.style.display = 'none';
               const fallback = target.nextElementSibling as HTMLElement | null;
               if (fallback) fallback.style.display = 'flex';
@@ -140,3 +142,5 @@ const Header = () => {
 };
 
 export default Header;
+
+
