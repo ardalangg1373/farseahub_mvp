@@ -1,0 +1,20 @@
+/* --- hero + reveal --- */
+:root { color-scheme: dark; }
+body { background:#0a0a0a; color:#eaeaea; margin:0; }
+
+.section {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 4rem 1.5rem;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity .8s ease, transform .8s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
