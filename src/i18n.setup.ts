@@ -1,8 +1,8 @@
-// src/i18n.ts — Vite + React + react-i18next (SSR-safe)
+// src/i18n.setup.ts — Vite + React + react-i18next
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 
-// JSON های ترجمه (مسیرها را بر اساس ساختار پروژه‌ی خودت تنظیم کن)
+// مسیرها مطابق ساختار فعلی repo (i18n بیرون از src)
 import en from "../i18n/locales/en/common.json";
 import fa from "../i18n/locales/fa/common.json";
 import ar from "../i18n/locales/ar/common.json";
@@ -29,7 +29,7 @@ i18n.use(initReactI18next).init({
   returnNull: false,
 });
 
-// ذخیره زبان وقتی تغییر می‌کند (در مرورگر)
+// ذخیره زبان در مرورگر
 i18n.on("languageChanged", (lng) => {
   if (typeof window !== "undefined") {
     try {
