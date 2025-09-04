@@ -31,3 +31,19 @@
   "error": "خطا",
   "success": "موفقیت"
 }
+{
+  "nav": {
+    "whitepaper": "وایت‌پیپر",
+    "farsicoin": "فارسی‌کوین"
+  },
+  "wallet": {
+    "connect": "اتصال کیف‌پول",
+    "disconnect": "قطع اتصال",
+    "connected": "متصل شد",
+    "connecting": "در حال اتصال…"
+  },
+  "auth": {
+    "login": "ورود",
+    "signup": "ثبت‌نام"
+  }
+}
