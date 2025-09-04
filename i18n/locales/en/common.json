@@ -31,3 +31,21 @@
   "error": "Error",
   "success": "Success"
 }
+
+{
+  "nav": {
+    "whitepaper": "Whitepaper",
+    "farsicoin": "FarsiCoin"
+  },
+  "wallet": {
+    "connect": "Connect Wallet",
+    "disconnect": "Disconnect",
+    "connected": "Connected",
+    "connecting": "Connecting…"
+  },
+  "auth": {
+    "login": "Log In",
+    "signup": "Sign Up"
+  }
+
+
