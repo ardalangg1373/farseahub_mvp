@@ -5,7 +5,8 @@ import App from "./App.tsx";
 import "./index.css";
 
 // i18n باید قبل از رندر لود شود
-import "./i18n";
+import "./i18n.setup";
+
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
