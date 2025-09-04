@@ -1,14 +1,13 @@
 // src/App.tsx
 import { BrowserRouter, Routes, Route, NavLink, Outlet } from "react-router-dom";
 import { Suspense } from "react";
-// اگر Header داری فعال بماند، اگر نداری، این خط را موقتاً کامنت کن
-// import Header from "@/components/Header";
+// import Header from "@/components/Header"; // اگر داری، فعالش کن
+import Home from "./pages/Home"; // ← هوم واقعی
 
 // --------------- Layout ---------------
 function Layout() {
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">
-      {/* اگر Header واقعی داری، از آن استفاده کن */}
       {/* <Header /> */}
       <SiteTopbar />
       <main className="flex-1">
@@ -30,7 +29,7 @@ function SiteTopbar() {
     <header className="sticky top-0 z-50 backdrop-blur bg-black/50 border-b border-white/10">
       <div className="mx-auto max-w-6xl px-4 py-3 flex items-center gap-4">
         <NavLink to="/" className="font-semibold tracking-wide">
-          FarsiHub
+          FarSeaHub
         </NavLink>
         <nav className="flex items-center gap-1 text-sm">
           <NavLink to="/whitepaper" className={linkCls}>Whitepaper</NavLink>
@@ -45,7 +44,7 @@ function SiteFooter() {
   return (
     <footer className="border-t border-white/10">
       <div className="mx-auto max-w-6xl px-4 py-6 text-xs text-white/60">
-        © {new Date().getFullYear()} FarsiHub — All rights reserved.
+        © {new Date().getFullYear()} FarSeaHub — All rights reserved.
       </div>
     </footer>
   );
@@ -59,34 +58,17 @@ function PageLoading() {
   );
 }
 
-// --------------- Pages (Placeholders) ---------------
-// بعداً می‌تونی هر کدوم رو به فایل جدا منتقل کنی
-
-function HomePage() {
-  return (
-    <section className="mx-auto max-w-6xl px-4 py-12">
-      <h1 className="text-3xl font-bold mb-3">Welcome to FarsiHub</h1>
-      <p className="text-white/80">
-        This is the home page. Replace this placeholder with your real Home component.
-      </p>
-    </section>
-  );
-}
-
-// ---------- Whitepaper ----------
+// --------------- Whitepaper (Nested) ---------------
 function WhitepaperIndex() {
   return (
     <section className="mx-auto max-w-6xl px-4 py-12">
       <h1 className="text-2xl font-bold mb-2">Whitepaper</h1>
-      <p className="text-white/80 mb-6">
-        Main index of the whitepaper. Choose a section below.
-      </p>
+      <p className="text-white/80 mb-6">Main index of the whitepaper. Choose a section below.</p>
       <WhitepaperNav />
       <Outlet />
     </section>
   );
 }
-
 function WhitepaperNav() {
   const base = "/whitepaper";
   const item = (to: string, label: string) => (
@@ -114,40 +96,24 @@ function WhitepaperNav() {
     </div>
   );
 }
+const WhitepaperOverview = () => <Section title="Whitepaper — Overview" />;
+const WhitepaperTokenomics = () => <Section title="Whitepaper — Tokenomics" />;
+const WhitepaperGameRules = () => <Section title="Whitepaper — Game Rules" />;
+const WhitepaperEconomy = () => <Section title="Whitepaper — Economy" />;
+const WhitepaperRoadmap = () => <Section title="Whitepaper — Roadmap" />;
+const WhitepaperLegal = () => <Section title="Whitepaper — Legal" />;
 
-function WhitepaperOverview() {
-  return <Section title="Whitepaper — Overview" />;
-}
-function WhitepaperTokenomics() {
-  return <Section title="Whitepaper — Tokenomics" />;
-}
-function WhitepaperGameRules() {
-  return <Section title="Whitepaper — Game Rules" />;
-}
-function WhitepaperEconomy() {
-  return <Section title="Whitepaper — Economy" />;
-}
-function WhitepaperRoadmap() {
-  return <Section title="Whitepaper — Roadmap" />;
-}
-function WhitepaperLegal() {
-  return <Section title="Whitepaper — Legal" />;
-}
-
-// ---------- FarsiCoin ----------
+// --------------- FarsiCoin (Nested) ---------------
 function FarsiCoinIndex() {
   return (
     <section className="mx-auto max-w-6xl px-4 py-12">
       <h1 className="text-2xl font-bold mb-2">FarsiCoin</h1>
-      <p className="text-white/80 mb-6">
-        Overview and docs for FarsiCoin. Choose a section below.
-      </p>
+      <p className="text-white/80 mb-6">Overview and docs for FarsiCoin. Choose a section below.</p>
       <FarsiCoinNav />
       <Outlet />
     </section>
   );
 }
-
 function FarsiCoinNav() {
   const base = "/farsicoin";
   const item = (to: string, label: string) => (
@@ -174,24 +140,13 @@ function FarsiCoinNav() {
     </div>
   );
 }
+const FarsiCoinOverview = () => <Section title="FarsiCoin — Overview" />;
+const FarsiCoinTokenomics = () => <Section title="FarsiCoin — Tokenomics" />;
+const FarsiCoinDistribution = () => <Section title="FarsiCoin — Distribution" />;
+const FarsiCoinFAQ = () => <Section title="FarsiCoin — FAQ" />;
+const FarsiCoinLegal = () => <Section title="FarsiCoin — Legal" />;
 
-function FarsiCoinOverview() {
-  return <Section title="FarsiCoin — Overview" />;
-}
-function FarsiCoinTokenomics() {
-  return <Section title="FarsiCoin — Tokenomics" />;
-}
-function FarsiCoinDistribution() {
-  return <Section title="FarsiCoin — Distribution" />;
-}
-function FarsiCoinFAQ() {
-  return <Section title="FarsiCoin — FAQ" />;
-}
-function FarsiCoinLegal() {
-  return <Section title="FarsiCoin — Legal" />;
-}
-
-// ---------- Not Found ----------
+// --------------- Shared ---------------
 function NotFoundPage() {
   return (
     <section className="mx-auto max-w-6xl px-4 py-16">
@@ -200,15 +155,11 @@ function NotFoundPage() {
     </section>
   );
 }
-
-// ---------- Shared section placeholder ----------
 function Section({ title }: { title: string }) {
   return (
     <div className="rounded-2xl p-6 border border-white/10 bg-white/5">
       <h2 className="text-xl font-semibold mb-2">{title}</h2>
-      <p className="text-white/75">
-        Placeholder content. Replace with the real content for this section.
-      </p>
+      <p className="text-white/75">Placeholder content. Replace with the real content for this section.</p>
     </div>
   );
 }
@@ -220,8 +171,8 @@ export default function App() {
       <Routes>
         {/* Layout wrapper */}
         <Route element={<Layout />}>
-          {/* Home */}
-          <Route index element={<HomePage />} />
+          {/* Home → هوم واقعی */}
+          <Route index element={<Home />} />
 
           {/* Whitepaper + nested routes */}
           <Route path="whitepaper" element={<WhitepaperIndex />}>
