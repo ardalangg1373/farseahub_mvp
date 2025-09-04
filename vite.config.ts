@@ -8,7 +8,6 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      // بای‌پس ایمپورت‌های سرگردانِ libNext (در صورت وجود)
       libNext: "i18next",
     },
   },
