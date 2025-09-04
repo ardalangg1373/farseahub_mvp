@@ -1,3 +1,5 @@
+console.log('%c[Header ACTIVE] this is the header you’re seeing', 'color:#22c55e');
+
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
