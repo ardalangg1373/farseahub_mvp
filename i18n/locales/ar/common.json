@@ -21,3 +21,20 @@
   "help": "مساعدة",
   "settings": "الإعدادات"
 }
+
+{
+  "nav": {
+    "whitepaper": "الورقة البيضاء",
+    "farsicoin": "فارسي كوين"
+  },
+  "wallet": {
+    "connect": "ربط المحفظة",
+    "disconnect": "قطع الاتصال",
+    "connected": "متصل",
+    "connecting": "جارٍ الاتصال…"
+  },
+  "auth": {
+    "login": "تسجيل الدخول",
+    "signup": "إنشاء حساب"
+  }
+}
