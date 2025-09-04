@@ -21,3 +21,20 @@
   "help": "Помощь",
   "settings": "Настройки"
 }
+
+{
+  "nav": {
+    "whitepaper": "Вайтпейпер",
+    "farsicoin": "FarsiCoin"
+  },
+  "wallet": {
+    "connect": "Подключить кошелёк",
+    "disconnect": "Отключить",
+    "connected": "Подключено",
+    "connecting": "Подключение…"
+  },
+  "auth": {
+    "login": "Войти",
+    "signup": "Регистрация"
+  }
+}
