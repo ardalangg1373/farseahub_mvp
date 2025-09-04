@@ -4,14 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
-  ShoppingBag, MapPin, Heart, Users, Star, ArrowRight, Globe, Shield, Zap, Sparkles, Youtube, Play
+  ShoppingBag, MapPin, Heart, Users, ArrowRight, Globe, Shield, Zap, Sparkles, Youtube, Play
 } from 'lucide-react';
 
 /* ======================= */
 /* Helpers */
 /* ======================= */
 
-// Reveal on scroll using IntersectionObserver
 function Reveal({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const [visible, setVisible] = useState(false);
@@ -57,9 +56,8 @@ function VideoScrollSequence() {
     { primary: '/film2.mp4.mp4', fallback: '/flim2.mp4.mp4', url: '/film2.mp4.mp4' },
     { primary: '/film3.mp4.mp4', fallback: '/flim3.mp4.mp4', url: '/film3.mp4.mp4' },
   ]);
-  const [progress, setProgress] = useState(0); // 0..1 across the whole sequence
+  const [progress, setProgress] = useState(0);
 
-  // If a typo like flim*.mp4.mp4 exists in /public, switch automatically
   const handleError = (idx: number) =>
     setSrcs((arr) => arr.map((s, i) => (i === idx ? { ...s, url: s.fallback } : s)));
 
@@ -83,26 +81,28 @@ function VideoScrollSequence() {
     };
   }, []);
 
-  // Split 0..1 into 3 phases with overlaps to get buttery crossfades
   const phase = (p: number) => {
-    const a = Math.min(1, Math.max(0, (0.43 - p) / 0.10)); // v1 tail
+    const a = Math.min(1, Math.max(0, (0.43 - p) / 0.10));
     const bIn = Math.min(1, Math.max(0, (p - 0.23) / 0.10));
     const bOut = Math.min(1, Math.max(0, (0.76 - p) / 0.10));
-    const b = Math.min(bIn, bOut); // v2 bell
-    const c = Math.min(1, Math.max(0, (p - 0.57) / 0.10)); // v3 head
+    const b = Math.min(bIn, bOut);
+    const c = Math.min(1, Math.max(0, (p - 0.57) / 0.10));
     const sum = a + b + c || 1;
     return { a: a / sum, b: b / sum, c: c / sum };
   };
 
   const { a, b, c } = phase(progress);
 
-  // subtle parallax/scale + blur for 3D-ish feel
-  const scale = (w: number) => `scale(${1 + w * 0.06})`;
+  // تغییر: ویدئوی اول کمی کوچک‌تر نمایش داده شود
+  const scale = (w: number, idx: number) => {
+    if (idx === 0) return `scale(${0.9 + w * 0.05})`; // ~90% تا 95%
+    return `scale(${1 + w * 0.06})`; // بقیه مانند قبل
+  };
+
   const blur = (w: number) => `blur(${(1 - w) * 6}px)`;
   const op = (w: number) => w;
 
   return (
-    // Adjust height for total scroll length (350–500vh)
     <section ref={wrapRef} className="relative h-[420vh] w-full overflow-visible">
       <div className="sticky top-0 h-[100svh] w-full">
         <div className="relative h-full w-full">
@@ -115,10 +115,9 @@ function VideoScrollSequence() {
                 className="absolute inset-0 will-change-transform"
                 style={{
                   opacity: op(w),
-                  transform: scale(w),
+                  transform: scale(w, idx),
                   filter: blur(w),
-                  transition:
-                    'opacity 0.15s linear, transform 0.15s linear, filter 0.15s linear',
+                  transition: 'opacity 0.15s linear, transform 0.15s linear, filter 0.15s linear',
                 }}
               >
                 <video
@@ -250,10 +249,10 @@ const Home = () => {
 
   return (
     <div className="min-h-screen">
-      {/* ✨ New scroll-driven 3-video hero */}
+      {/* New 3-video scroll hero */}
       <VideoScrollSequence />
 
-      {/* ✨ Scroll-to-reveal tagline */}
+      {/* Tagline */}
       <section className="py-16 md:py-24">
         <Reveal>
           <h1
@@ -265,7 +264,7 @@ const Home = () => {
         </Reveal>
       </section>
 
-      {/* Hero Section */}
+      {/* Hero Section (static copy as before) */}
       <section className="relative py-20 px-4 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950 dark:via-purple-950 dark:to-pink-950">
         <div className="container mx-auto text-center">
           <Badge variant="secondary" className="mb-4">
@@ -296,7 +295,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Main Features Section */}
+      {/* Main Features */}
       <section className="py-20 px-4">
         <div className="container mx-auto">
           <div className="text-center mb-16">
@@ -305,7 +304,6 @@ const Home = () => {
               From shopping authentic goods to planning cultural trips, finding love, and exploring virtual worlds - FarSeaHub brings the Persian community together.
             </p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {mainFeatures.map((feature, index) => {
               const Icon = feature.icon;
@@ -338,7 +336,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Detailed Features Section */}
+      {/* Detailed Features */}
       <section className="py-20 px-4 bg-muted/30">
         <div className="container mx-auto">
           <div className="text-center mb-16">
@@ -347,7 +345,6 @@ const Home = () => {
               Explore the comprehensive features that make FarSeaHub your ultimate destination for Persian culture and community.
             </p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {detailedFeatures.map((feature, index) => (
               <Card key={index} className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
@@ -384,7 +381,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Stats Section */}
+      {/* Stats */}
       <section className="py-16 px-4 bg-muted/50">
         <div className="container mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -402,7 +399,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Benefits Section */}
+      {/* Benefits */}
       <section className="py-20 px-4">
         <div className="container mx-auto">
           <div className="text-center mb-16">
@@ -411,7 +408,6 @@ const Home = () => {
               We're more than just a platform - we're a community dedicated to preserving and celebrating Persian culture.
             </p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {benefits.map((benefit, index) => {
               const Icon = benefit.icon;
@@ -429,17 +425,17 @@ const Home = () => {
         </div>
       </section>
 
-      {/* YouTube Demo Section */}
+      {/* YouTube Demo */}
       <section className="py-20 px-4 bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-950 dark:to-pink-950">
         <div className="container mx-auto">
           <div className="text-center mb-12">
-            <Badge variant="secondary" className="mb-4">
+            <Badge variant="secondary" className="mb-4 inline-flex items-center">
               <Youtube className="h-3 w-3 mr-1" />
               Watch Demo
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Experience FarSeaHub Metaverse</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-              Watch our exclusive demo video showcasing the immersive Metaverse experience and discover how Persian culture comes alive in virtual reality.
+              Watch our exclusive demo video showcasing the immersive Metaverse experience and see how Persian culture comes alive in virtual reality.
             </p>
           </div>
 
