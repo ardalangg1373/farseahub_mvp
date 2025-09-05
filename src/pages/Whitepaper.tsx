@@ -152,102 +152,91 @@ function Section({ id, title, children }: { id: string; title: string; children:
 }
 
 /* ===========================
-   Fullscreen HERO (Pinned)
+   SCROLL VIDEO STACK (No rAF scrubbing)
 =========================== */
 
-function FullscreenHero() {
+function ScrollVideoStack({ sources }: { sources: string[] }) {
   const hostRef = useRef<HTMLDivElement | null>(null);
-  const videoRefA = useRef<HTMLVideoElement | null>(null);
-  const videoRefB = useRef<HTMLVideoElement | null>(null);
-  const [durA, setDurA] = useState(8);
-  const [durB, setDurB] = useState(8);
+  const vidsRef = useRef<(HTMLVideoElement | null)[]>([]);
 
-  // Prime first frame + durations
   useEffect(() => {
-    const prime = (v: HTMLVideoElement | null, setDur?: (n: number) => void) => {
-      if (!v) return () => {};
-      const onMeta = () => {
-        setDur && setDur(isFinite(v.duration) ? v.duration : 8);
-        try { v.pause(); v.currentTime = 0.001; } catch {}
-      };
-      if (v.readyState >= 2) onMeta();
-      v.addEventListener("loadedmetadata", onMeta);
-      v.addEventListener("loadeddata", onMeta);
-      return () => {
-        v.removeEventListener("loadedmetadata", onMeta);
-        v.removeEventListener("loadeddata", onMeta);
-      };
-    };
-    const cleanA = prime(videoRefA.current, setDurA);
-    const cleanB = prime(videoRefB.current, setDurB);
-    return () => { cleanA && cleanA(); cleanB && cleanB(); };
-  }, []);
+    // دسترس‌پذیری: اگر کاربر موشن کم می‌خواهد، انیمیشن را خاموش کنیم
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) return;
 
-  // Scroll-scrub + crossfade
-  useEffect(() => {
     let raf = 0;
     const clamp = (x: number, a = 0, b = 1) => Math.min(b, Math.max(a, x));
     const smoothstep = (e0: number, e1: number, x: number) => {
       const t = clamp((x - e0) / (e1 - e0));
       return t * t * (3 - 2 * t);
     };
+
     const loop = () => {
       const host = hostRef.current;
-      const va = videoRefA.current;
-      const vb = videoRefB.current;
       if (host) {
         const rect = host.getBoundingClientRect();
         const vh = window.innerHeight || 1;
-        // host height = 220vh → progress 0..1 across that space
-        const p = getInViewProgress(rect, vh);
-        const seg = p * 2; // 0..2
+        // p از 0 تا n ویدیو (هر ویدیو پهنای 1)
+        const p = getInViewProgress(rect, vh) * sources.length;
+        const fadeWidth = 0.25; // پهنای محو شدن
 
-        if (va && !isNaN(durA)) va.currentTime = durA * clamp(seg, 0, 1);
-        if (vb && !isNaN(durB)) vb.currentTime = durB * clamp(seg - 1, 0, 1);
+        vidsRef.current.forEach((v, i) => {
+          if (!v) return;
+          const seg = p - i; // جایگاه نسبی ویدیو i نسبت به اسکرول
+          let opacity = 0;
 
-        const fadeWidth = 0.22;
-        const aOpacity = 1 - smoothstep(1 - fadeWidth, 1, seg);
-        const bOpacity = smoothstep(1, 1 + fadeWidth, seg);
-        if (va) va.style.opacity = String(aOpacity);
-        if (vb) vb.style.opacity = String(bOpacity);
+          // فید-این قبل از ورود
+          if (seg >= -fadeWidth && seg < 0) {
+            opacity = smoothstep(-fadeWidth, 0, seg);
+          }
+          // کامل در دید
+          else if (seg >= 0 && seg <= 1) {
+            // در میانه، 1؛ نزدیک مرز خروج، محوتر
+            const out = smoothstep(1 - fadeWidth, 1, seg);
+            opacity = 1 - out;
+          } else {
+            opacity = 0;
+          }
+
+          v.style.opacity = String(clamp(opacity, 0, 1));
+        });
       }
       raf = requestAnimationFrame(loop);
     };
+
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [durA, durB]);
+  }, [sources.length]);
+
+  // پرایم ویدیوها: اجازه بده مرورگر خودش Play/Buffer را مدیریت کند
+  useEffect(() => {
+    vidsRef.current.forEach((v) => {
+      if (!v) return;
+      try {
+        // روی موبایل iOS/اندروید باید muted + playsInline باشد تا autoplay کار کند
+        v.muted = true;
+        v.playsInline = true;
+        // فقط تلاش برای play (برخی مرورگرها lazy-play می‌کنند و اشکالی ندارد)
+        const p = v.play();
+        if (p && typeof p.catch === "function") p.catch(() => {});
+      } catch {}
+    });
+  }, [sources]);
 
   return (
-    // 220vh = فضای اسکرول برای اسکراب و کراس‌فید
-    <section ref={hostRef} className="relative h-[220vh]">
-      {/* لایه چسبان به ویوپورت */}
+    // ارتفاع کلی: به‌ازای هر ویدیو ~120vh تا زمان برای کراس‌فید داشته باشیم
+    <section ref={hostRef} className="relative" style={{ height: `${sources.length * 120}vh` }}>
       <div className="sticky top-0 h-screen w-screen overflow-hidden">
-        {/* ویدیوها: فول-اسکرین */}
-        <video
-          ref={videoRefA}
-          src="/film7.mp4"
-          muted
-          playsInline
-          preload="auto"
-          className="absolute inset-0 h-full w-full object-cover opacity-100 transition-opacity duration-300"
+        {/* لایهٔ گریدینت برای حس سینمایی */}
+        <div
+          className="pointer-events-none absolute inset-0 z-10"
+          style={{
+            background:
+              "radial-gradient(60rem 60rem at 50% 15%, rgba(229,9,20,0.12), transparent 60%), linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0.35) 100%)",
+          }}
         />
-        <video
-          ref={videoRefB}
-          src="/film8.mp4"
-          muted
-          playsInline
-          preload="auto"
-          className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300"
-        />
-
-        {/* گرادینت‌های ظریف برای سینمایی شدن */}
-        <div className="pointer-events-none absolute inset-0" style={{
-          background:
-            "radial-gradient(60rem 60rem at 50% 15%, rgba(229,9,20,0.12), transparent 60%), linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0.35) 100%)"
-        }} />
-
-        {/* عنوان و CTA شناور */}
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+        {/* عنوان مرکزی */}
+        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
           <div className="text-center px-6">
             <h1
               className="hero-title text-4xl md:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent"
@@ -259,8 +248,26 @@ function FullscreenHero() {
           </div>
         </div>
 
-        {/* دکمه‌ها گوشه پایین راست، شیشه‌ای */}
-        <div className="absolute right-4 md:right-8 bottom-4 md:bottom-8 flex gap-3 pointer-events-auto">
+        {/* خود ویدیوها: روی هم، با فید نرم */}
+        {sources.map((src, i) => (
+          <video
+            key={src}
+            ref={(el) => (vidsRef.current[i] = el)}
+            src={src}
+            className="absolute inset-0 h-full w-full object-cover will-change-[opacity] transition-opacity duration-300"
+            style={{ opacity: 0 }}
+            preload="auto"
+            muted
+            loop
+            autoPlay
+            playsInline
+            // اگر پوستر داری بگذار: poster={`/thumbs/${basename}.jpg`}
+            // crossOrigin="anonymous"
+          />
+        ))}
+
+        {/* دکمه‌های گوشه پایین راست */}
+        <div className="absolute right-4 md:right-8 bottom-4 md:bottom-8 z-30 flex gap-3 pointer-events-auto">
           <a
             href="/whitepaper.pdf"
             className="rounded-xl px-4 py-3 text-sm font-semibold border border-white/20 bg-white/10 hover:bg-white/15 transition"
@@ -305,15 +312,14 @@ const Whitepaper = () => {
     <div
       className="relative"
       style={{
-        backgroundImage:
-          `radial-gradient(40rem 40rem at 80% -10%, rgba(229,9,20,0.10), transparent 60%),
+        backgroundImage: `radial-gradient(40rem 40rem at 80% -10%, rgba(229,9,20,0.10), transparent 60%),
            radial-gradient(30rem 30rem at -10% 110%, rgba(229,9,20,0.05), transparent 60%)`,
       }}
     >
       <ScrollProgressBar />
 
-      {/* فول‌اسکرین ویدیوها با کراس‌فید */}
-      <FullscreenHero />
+      {/* ویدیوهای فول‌اسکرین با کراس‌فید نرم و بدون لگ */}
+      <ScrollVideoStack sources={["/film7.mp4", "/film8.mp4", "/film9.mp4"]} />
 
       {/* بدنهٔ وایت‌پیپر */}
       <div className="max-w-6xl mx-auto px-6 pb-24 grid grid-cols-1 lg:grid-cols-[16rem_1fr] gap-8">
