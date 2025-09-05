@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, ShoppingBag, MapPin, Heart, User, Sparkles, Wallet } from 'lucide-react';
+import { Menu, ShoppingBag, MapPin, Heart, User, Sparkles, Wallet, FileText, Coins } from 'lucide-react';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [walletAddr, setWalletAddr] = useState<string | null>(null); // mock wallet
+  const [walletAddr, setWalletAddr] = useState<string | null>(null);
   const location = useLocation();
 
   useEffect(() => {
@@ -30,6 +30,9 @@ const Header = () => {
     { name: 'Tourism', href: '/tourism', icon: MapPin },
     { name: 'Dating', href: '/dating', icon: Heart },
     { name: 'Metaverse', href: '/metaverse', icon: Sparkles },
+    // 🔻 اضافه‌شده:
+    { name: 'Whitepaper', href: '/whitepaper', icon: FileText },
+    { name: 'FarsiCoin', href: '/farsicoin', icon: Coins },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -42,7 +45,6 @@ const Header = () => {
       aria-label="Main"
       className={[
         'sticky top-0 z-50 w-full transition-all duration-300',
-        // شیشه‌ای لاکچری با گرادیان بسیار لطیف و حلقه قرمز
         scrolled
           ? 'backdrop-blur-md bg-black/55 supports-[backdrop-filter]:bg-black/45 shadow-[0_10px_30px_-15px_rgba(229,9,20,0.25)]'
           : 'backdrop-blur-md bg-black/35 supports-[backdrop-filter]:bg-black/25',
@@ -50,7 +52,6 @@ const Header = () => {
         'border-b border-white/5'
       ].join(' ')}
       style={{
-        // هاله‌ی قرمز خیلی ملایم زیر هدر
         boxShadow: scrolled
           ? '0 0 0 1px rgba(255,255,255,0.04), inset 0 -1px 0 rgba(255,255,255,0.04)'
           : undefined,
@@ -58,14 +59,11 @@ const Header = () => {
           'radial-gradient(60rem 40rem at 110% -20%, rgba(229,9,20,0.12), transparent 60%)'
       }}
     >
-      {/* نوار پیشرفت اسکرول (2px) */}
       <div
         className="absolute left-0 top-0 h-[2px] bg-gradient-to-r from-red-500 via-rose-500 to-purple-500 transition-[width] duration-150"
         style={{ width: `${progress}%` }}
         aria-hidden
       />
-
-      {/* خط زیرین گرادیانیِ زنده */}
       <div
         className="pointer-events-none absolute inset-x-0 -bottom-px h-px"
         style={{
@@ -75,19 +73,15 @@ const Header = () => {
       />
 
       <div className="container flex h-full items-center justify-between">
-        {/* Logo + Brand */}
         <Link to="/" className="relative group flex items-center gap-1.5">
-          {/* هاله پشت لوگو */}
           <span className="absolute -inset-2 rounded-xl bg-red-600/0 blur-xl transition group-hover:bg-red-600/10" aria-hidden></span>
-
           <img src="/logoasli1373.png" alt="Farseahub logo" className="relative h-8 w-auto" />
-
           <span className="relative -ml-1 leading-none text-[20px] font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-pink-500 to-purple-500">
             farseahub
           </span>
         </Link>
 
-        {/* Desktop Navigation – کپسول شیشه‌ای */}
+        {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-1 rounded-2xl border border-white/5 bg-white/5 backdrop-blur px-1 py-1">
           {navigation.map((item) => {
             const Icon = item.icon as any;
@@ -97,30 +91,26 @@ const Header = () => {
                 key={item.name}
                 to={item.href}
                 className={[
-                  'relative px-3 py-2 rounded-xl text-sm font-medium transition',
-                  active
-                    ? 'text-white'
-                    : 'text-zinc-300/80 hover:text-white'
+                  'group relative px-3 py-2 rounded-xl text-sm font-medium transition',
+                  active ? 'text-white' : 'text-zinc-300/80 hover:text-white'
                 ].join(' ')}
               >
                 <span className="flex items-center gap-2">
                   {Icon && <Icon className="h-4 w-4" />}
                   {item.name}
                 </span>
-
-                {/* پس‌زمینه‌ی قرمز محو هنگام هاور/اکتیو */}
                 <span
                   className={[
                     'pointer-events-none absolute inset-0 -z-10 rounded-xl transition',
                     active ? 'bg-red-600/15 shadow-[0_0_0_1px_rgba(229,9,20,0.35)_inset]' : 'group-hover:bg-red-600/10'
                   ].join(' ')}
                 />
-
-                {/* اندیکاتور زیر لینک با اسلاید */}
                 <span
                   className={[
                     'absolute left-3 right-3 -bottom-[3px] h-[2px] rounded-full transition-all origin-left',
-                    active ? 'bg-gradient-to-r from-red-500 via-rose-500 to-purple-500 scale-x-100 opacity-100' : 'bg-red-500/60 scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-80'
+                    active
+                      ? 'bg-gradient-to-r from-red-500 via-rose-500 to-purple-500 scale-x-100 opacity-100'
+                      : 'bg-red-500/60 scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-80'
                   ].join(' ')}
                 />
               </Link>
@@ -128,9 +118,8 @@ const Header = () => {
           })}
         </nav>
 
-        {/* Desktop Actions */}
+        {/* Actions */}
         <div className="hidden md:flex items-center gap-2">
-          {/* Wallet (mock) */}
           <Button
             variant={walletAddr ? 'outline' : 'default'}
             onClick={toggleMockWallet}
@@ -142,16 +131,12 @@ const Header = () => {
             ].join(' ')}
           >
             <span className="absolute inset-0 -z-10 opacity-30"
-              style={{
-                background:
-                  'radial-gradient(30rem 30rem at -20% -50%, rgba(255,255,255,0.25), transparent)'
-              }}
+              style={{ background: 'radial-gradient(30rem 30rem at -20% -50%, rgba(255,255,255,0.25), transparent)' }}
             />
             <Wallet className="h-4 w-4 mr-2" />
             {walletAddr ? shortAddr(walletAddr) : 'Connect Wallet'}
           </Button>
 
-          {/* Auth / Profile */}
           {walletAddr ? (
             <Link to="/profile">
               <Button variant="ghost" className="gap-2 text-zinc-200 hover:text-white hover:bg-white/5 rounded-xl">
@@ -175,7 +160,7 @@ const Header = () => {
           )}
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile */}
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild className="md:hidden">
             <Button variant="ghost" size="icon" aria-label="Open menu" className="rounded-xl hover:bg-white/10">
@@ -219,7 +204,6 @@ const Header = () => {
             <div className="mt-6 border-t border-white/10 pt-4 space-y-2">
               <Button
                 className="w-full justify-start gap-2 rounded-xl bg-gradient-to-br from-red-600 to-red-700 text-white hover:opacity-95 border-0"
-                variant={walletAddr ? 'default' : 'default'}
                 onClick={() => {
                   toggleMockWallet();
                   setIsOpen(false);
