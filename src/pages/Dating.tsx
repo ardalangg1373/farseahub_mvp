@@ -1,9 +1,149 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, X, MapPin, Calendar, MessageCircle, Users, Shield } from 'lucide-react';
+import { Heart, X, MapPin, Calendar, MessageCircle, Users, Shield, Volume2, VolumeX } from 'lucide-react';
 
+/* ===========================
+   HERO: Two videos with audio + soft crossfade (film11 & film12)
+=========================== */
+function VideoHeroDuo() {
+  const vidA = useRef<HTMLVideoElement | null>(null);
+  const vidB = useRef<HTMLVideoElement | null>(null);
+  const [active, setActive] = useState<0 | 1>(0); // 0 -> A (film11), 1 -> B (film12)
+  const [muted, setMuted] = useState(true);
+  const [ready, setReady] = useState({ a: false, b: false });
+
+  // helper to play a video safely
+  const safePlay = (v: HTMLVideoElement | null) => v?.play().catch(() => {});
+
+  useEffect(() => {
+    const a = vidA.current;
+    const b = vidB.current;
+    if (!a || !b) return;
+
+    // preload handlers
+    const onMetaA = () => setReady((s) => ({ ...s, a: true }));
+    const onMetaB = () => setReady((s) => ({ ...s, b: true }));
+
+    a.addEventListener('loadeddata', onMetaA);
+    b.addEventListener('loadeddata', onMetaB);
+
+    // when one ends, crossfade to the other
+    const goNext = () => {
+      const current = active === 0 ? a : b;
+      const next = active === 0 ? b : a;
+
+      if (!current || !next) return;
+
+      // prepare next
+      try { next.currentTime = 0; } catch {}
+      next.style.transition = 'opacity 800ms ease';
+      current.style.transition = 'opacity 800ms ease';
+
+      // audio handover
+      if (!muted) {
+        current.muted = true;      // avoid echo
+        next.muted = false;
+      }
+
+      next.style.opacity = '1';
+      current.style.opacity = '0';
+      safePlay(next);
+      setActive((prev) => (prev === 0 ? 1 : 0));
+    };
+
+    a.addEventListener('ended', goNext);
+    b.addEventListener('ended', goNext);
+
+    // initial states
+    a.style.opacity = '1';
+    b.style.opacity = '0';
+
+    // attempt autoplay (muted allowed)
+    a.muted = true;
+    b.muted = true;
+    safePlay(a);
+
+    return () => {
+      a.removeEventListener('loadeddata', onMetaA);
+      b.removeEventListener('loadeddata', onMetaB);
+      a.removeEventListener('ended', goNext);
+      b.removeEventListener('ended', goNext);
+    };
+  }, [active, muted]);
+
+  const toggleMute = () => {
+    const a = vidA.current;
+    const b = vidB.current;
+    const willBeMuted = !muted;
+    setMuted(willBeMuted);
+
+    // only the active one should carry audio
+    const activeEl = active === 0 ? a : b;
+    const inactiveEl = active === 0 ? b : a;
+
+    if (activeEl) activeEl.muted = willBeMuted;
+    if (inactiveEl) inactiveEl.muted = true;
+
+    // ensure playback continues if user just unmuted
+    if (activeEl?.paused) {
+      activeEl.play().catch(() => {});
+    }
+  };
+
+  return (
+    <section className="relative w-full h-[55vh] md:h-[70vh] overflow-hidden rounded-xl mb-8">
+      {/* subtle mask to improve readability near edges */}
+      <div
+        className="pointer-events-none absolute inset-0 z-10"
+        style={{
+          background:
+            'linear-gradient(90deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 75%, rgba(0,0,0,0.35) 100%)',
+        }}
+      />
+      {/* Videos stacked */}
+      <video
+        ref={vidA}
+        src="/film11.mp4"
+        className="absolute inset-0 h-full w-full object-cover"
+        playsInline
+        preload="auto"
+        autoPlay
+        // no loop: we want "ended" to fire, to crossfade to the other
+        loop={false}
+        muted
+      />
+      <video
+        ref={vidB}
+        src="/film12.mp4"
+        className="absolute inset-0 h-full w-full object-cover"
+        playsInline
+        preload="auto"
+        autoPlay
+        loop={false}
+        muted
+      />
+
+      {/* Unmute/Mute button */}
+      <button
+        onClick={toggleMute}
+        className="absolute bottom-4 right-4 z-20 rounded-xl px-4 py-2 text-sm font-semibold border border-white/20 bg-black/40 text-white hover:bg-black/60 transition"
+        style={{ backdropFilter: 'blur(6px)' }}
+      >
+        {muted ? (
+          <span className="inline-flex items-center gap-2"><Volume2 size={16} /> Unmute</span>
+        ) : (
+          <span className="inline-flex items-center gap-2"><VolumeX size={16} /> Mute</span>
+        )}
+      </button>
+    </section>
+  );
+}
+
+/* ===========================
+   Dating Page (original UI + video hero)
+=========================== */
 const Dating = () => {
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
 
@@ -16,7 +156,7 @@ const Dating = () => {
       bio: 'Love exploring new cultures, photography, and Persian poetry. Looking for meaningful connections.',
       interests: ['Photography', 'Poetry', 'Travel', 'Art'],
       photos: 5,
-      verified: true
+      verified: true,
     },
     {
       id: 2,
@@ -26,7 +166,7 @@ const Dating = () => {
       bio: 'Software engineer passionate about technology and traditional Persian music. Enjoy hiking and cooking.',
       interests: ['Technology', 'Music', 'Hiking', 'Cooking'],
       photos: 4,
-      verified: true
+      verified: true,
     },
     {
       id: 3,
@@ -36,7 +176,7 @@ const Dating = () => {
       bio: 'Artist and designer who loves books, cats, and long conversations over tea. Seeking genuine connection.',
       interests: ['Art', 'Books', 'Design', 'Cats'],
       photos: 6,
-      verified: false
+      verified: false,
     },
     {
       id: 4,
@@ -46,8 +186,8 @@ const Dating = () => {
       bio: 'Doctor with a passion for helping others. Love basketball, reading, and exploring historical sites.',
       interests: ['Medicine', 'Basketball', 'History', 'Reading'],
       photos: 3,
-      verified: true
-    }
+      verified: true,
+    },
   ];
 
   const matches = [
@@ -58,7 +198,7 @@ const Dating = () => {
       city: 'Tabriz',
       lastMessage: 'That sounds like a great plan!',
       timestamp: '2 hours ago',
-      unread: true
+      unread: true,
     },
     {
       id: 2,
@@ -67,7 +207,7 @@ const Dating = () => {
       city: 'Tehran',
       lastMessage: 'How was your day?',
       timestamp: '1 day ago',
-      unread: false
+      unread: false,
     },
     {
       id: 3,
@@ -76,8 +216,8 @@ const Dating = () => {
       city: 'Isfahan',
       lastMessage: 'Thanks for the book recommendation',
       timestamp: '3 days ago',
-      unread: false
-    }
+      unread: false,
+    },
   ];
 
   const currentProfile = profiles[currentProfileIndex];
@@ -101,13 +241,17 @@ const Dating = () => {
   return (
     <div className="min-h-screen py-8">
       <div className="container mx-auto px-4 max-w-6xl">
+
         {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">Persian Dating</h1>
+        <div className="mb-6 text-center">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">Persian Dating</h1>
           <p className="text-lg text-muted-foreground">
             Connect with Persian singles and build meaningful relationships
           </p>
         </div>
+
+        {/* NEW: Video hero with film11 & film12 */}
+        <VideoHeroDuo />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Profile Card */}
@@ -134,16 +278,18 @@ const Dating = () => {
                 <div className="space-y-4">
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <h2 className="text-2xl font-bold">{currentProfile.name}, {currentProfile.age}</h2>
+                      <h2 className="text-2xl font-bold">
+                        {currentProfile.name}, {currentProfile.age}
+                      </h2>
                     </div>
                     <div className="flex items-center text-muted-foreground">
                       <MapPin className="h-4 w-4 mr-1" />
                       {currentProfile.city}
                     </div>
                   </div>
-                  
+
                   <p className="text-muted-foreground">{currentProfile.bio}</p>
-                  
+
                   <div className="space-y-2">
                     <h3 className="font-semibold">Interests</h3>
                     <div className="flex flex-wrap gap-2">
@@ -186,9 +332,7 @@ const Dating = () => {
                   <MessageCircle className="h-5 w-5 mr-2" />
                   Your Matches
                 </CardTitle>
-                <CardDescription>
-                  {matches.length} matches waiting to chat
-                </CardDescription>
+                <CardDescription>{matches.length} matches waiting to chat</CardDescription>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="space-y-0">
@@ -202,17 +346,13 @@ const Dating = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <p className="font-medium truncate">{match.name}, {match.age}</p>
-                          {match.unread && (
-                            <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
-                          )}
+                          <p className="font-medium truncate">
+                            {match.name}, {match.age}
+                          </p>
+                          {match.unread && <div className="w-2 h-2 bg-pink-500 rounded-full"></div>}
                         </div>
-                        <p className="text-sm text-muted-foreground truncate">
-                          {match.lastMessage}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {match.timestamp}
-                        </p>
+                        <p className="text-sm text-muted-foreground truncate">{match.lastMessage}</p>
+                        <p className="text-xs text-muted-foreground">{match.timestamp}</p>
                       </div>
                     </div>
                   ))}
@@ -256,6 +396,7 @@ const Dating = () => {
             </Card>
           </div>
         </div>
+
       </div>
     </div>
   );
