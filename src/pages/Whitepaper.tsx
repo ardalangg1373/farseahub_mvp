@@ -269,37 +269,77 @@ const Whitepaper = () => {
   const activeId = useScrollSpy(ids);
 
   const stageRef = useRef<HTMLDivElement | null>(null);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const videoRefA = useRef<HTMLVideoElement | null>(null);
+  const videoRefB = useRef<HTMLVideoElement | null>(null);
   const glowRef = useRef<HTMLDivElement | null>(null);
   const gridRef = useRef<HTMLDivElement | null>(null);
-  const [duration, setDuration] = useState(8);
+  const [durA, setDurA] = useState(8);
+  const [durB, setDurB] = useState(8);
 
+  // متادیتای هر دو ویدیو
   useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    const onMeta = () => setDuration(v.duration || 8);
-    v.addEventListener("loadedmetadata", onMeta);
-    return () => v.removeEventListener("loadedmetadata", onMeta);
+    const va = videoRefA.current;
+    const vb = videoRefB.current;
+    if (va) {
+      const onMetaA = () => setDurA(va.duration || 8);
+      va.addEventListener("loadedmetadata", onMetaA);
+      return () => va.removeEventListener("loadedmetadata", onMetaA);
+    }
+    if (vb) {
+      const onMetaB = () => setDurB(vb.duration || 8);
+      vb.addEventListener("loadedmetadata", onMetaB);
+      return () => vb.removeEventListener("loadedmetadata", onMetaB);
+    }
   }, []);
 
+  // اسکراب‌کردن زمان و کراس‌فید نرم
   useEffect(() => {
     let raf = 0;
+    const clamp = (x: number, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+    const smoothstep = (e0: number, e1: number, x: number) => {
+      const t = clamp((x - e0) / (e1 - e0));
+      return t * t * (3 - 2 * t);
+    };
+
     const loop = () => {
       const stage = stageRef.current;
-      const v = videoRef.current;
+      const va = videoRefA.current;
+      const vb = videoRefB.current;
       const glow = glowRef.current;
       const grid = gridRef.current;
+
       if (stage) {
         const rect = stage.getBoundingClientRect();
         const vh = window.innerHeight || 1;
-        const p = 1 - Math.min(1, Math.max(0, (rect.top + rect.height * 0.5) / (vh + rect.height)));
-        if (v && !isNaN(duration)) v.currentTime = duration * p;
+        const p = 1 - Math.min(1, Math.max(0, (rect.top + rect.height * 0.5) / (vh + rect.height))); // 0..1
+        const seg = p * 2; // 0..2
+
+        // زمان هر ویدیو بر اساس اسکرول
+        if (va && !isNaN(durA)) {
+          const localA = clamp(seg, 0, 1);
+          va.currentTime = durA * localA;
+        }
+        if (vb && !isNaN(durB)) {
+          const localB = clamp(seg - 1, 0, 1);
+          vb.currentTime = durB * localB;
+        }
+
+        // کراس‌فید نرم دور نقطه‌ی انتقال (seg=1)
+        const fadeWidth = 0.18; // هرچه کوچکتر، انتقال تیزتر
+        const aOpacity = 1 - smoothstep(1 - fadeWidth, 1, seg);
+        const bOpacity = smoothstep(1, 1 + fadeWidth, seg);
+
+        if (va) (va.style as any).opacity = String(aOpacity);
+        if (vb) (vb.style as any).opacity = String(bOpacity);
+
+        // پارالاکس و شفافیت عنوان مثل قبل
         const translate = (el: HTMLElement | null, strength: number) => {
           if (!el) return;
           el.style.transform = `translateY(${(p - 0.5) * strength}px)`;
         };
         translate(glow as any, -60);
         translate(grid as any, -30);
+
         const title = stage.querySelector<HTMLElement>(".hero-title");
         if (title) title.style.opacity = String(Math.min(1, p * 1.8));
       }
@@ -307,7 +347,7 @@ const Whitepaper = () => {
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [duration]);
+  }, [durA, durB]);
 
   return (
     <div
@@ -328,26 +368,44 @@ const Whitepaper = () => {
             className="relative rounded-[28px] border border-white/10 overflow-hidden bg-black/50"
             style={{ backdropFilter: "blur(12px)" }}
           >
-            <div ref={glowRef} className="pointer-events-none absolute -inset-20"
-                 style={{ background: "radial-gradient(40rem 40rem at 50% 20%, rgba(229,9,20,0.18), transparent 60%)" }} />
-            <div ref={gridRef} className="pointer-events-none absolute inset-0 opacity-[0.08]"
-                 style={{
-                   backgroundImage:
-                     "linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)",
-                   backgroundSize: "48px 48px, 48px 48px",
-                 }} />
+            <div
+              ref={glowRef}
+              className="pointer-events-none absolute -inset-20"
+              style={{ background: "radial-gradient(40rem 40rem at 50% 20%, rgba(229,9,20,0.18), transparent 60%)" }}
+            />
+            <div
+              ref={gridRef}
+              className="pointer-events-none absolute inset-0 opacity-[0.08]"
+              style={{
+                backgroundImage:
+                  "linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)",
+                backgroundSize: "48px 48px, 48px 48px",
+              }}
+            />
             <LiteLottie />
 
-            {/* video */}
+            {/* === دو ویدیو با کراس‌فید نرم === */}
             <div className="relative aspect-[16/9] md:aspect-[12/5]">
+              {/* ویدیو اول */}
               <video
-                ref={videoRef}
-                src="/whitepaper-film.mp4"   // فایل در روت public
+                ref={videoRefA}
+                src="/film7.mp4" /* در public */
                 muted
                 playsInline
                 preload="metadata"
-                className="h-full w-full object-cover opacity-90"
+                className="absolute inset-0 h-full w-full object-cover opacity-100 transition-opacity duration-300"
               />
+              {/* ویدیو دوم */}
+              <video
+                ref={videoRefB}
+                src="/film8.mp4" /* در public */
+                muted
+                playsInline
+                preload="metadata"
+                className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300"
+              />
+
+              {/* عنوان روی ویدیوها */}
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                 <div className="text-center">
                   <h1
@@ -388,7 +446,7 @@ const Whitepaper = () => {
                 </a>
                 <Link
                   to="/farsicoin"
-                  className="rounded-xl px-4 py-3 text-sm font-semibold bg-white/10 border border-white/10 hover:bg-white/15 transition"
+                  className="rounded-xl px-4 py-3 text-sm font-semibold bg-white/10 border border-white/10 hover:bg白/15 transition"
                 >
                   View FarsiCoin
                 </Link>
