@@ -1,90 +1,97 @@
-
+import React, { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, Gamepad2, Users, Zap, ArrowRight, Play, Settings } from 'lucide-react';
 
-
-import { motion, useScroll, useSpring, useTransform } from 'framer-motion';
-import { useEffect, useRef } from 'react';
-
+/* ----------------------- Helpers for scroll videos (no libs) ----------------------- */
+const clamp = (v: number, min = 0, max = 1) => Math.min(max, Math.max(min, v));
+function segOpacity(progress: number, a: number, b: number) {
+  // 0->1->0 fade curve within [a,b]
+  const mid = (a + b) / 2;
+  const w = (b - a) / 2;
+  if (progress < a || progress > b) return 0;
+  const t = 1 - Math.abs((progress - mid) / w); // 0..1..0
+  return t;
+}
 
 function ScrollVideo({
-  src,
-  start,
-  end,
-  progress,
-}: {
-  src: string;
-  start: number; // 0..1
-  end: number;   // 0..1
-  progress: any; // MotionValue<number>
-}) {
-  const opacity = useTransform(progress, [start, (start + end) / 2, end], [0, 1, 0]);
-  const scale = useTransform(progress, [start, end], [1.03, 1]);
+  src, a, b, progress,
+}: { src: string; a: number; b: number; progress: number }) {
   const ref = useRef<HTMLVideoElement | null>(null);
+  const opacity = segOpacity(progress, a, b);
+  const scale = 1.03 - 0.03 * opacity; // tiny cinematic zoom-out while appearing
 
   useEffect(() => {
-    const unsub = progress.on('change', (v: number) => {
-      const el = ref.current;
-      if (!el) return;
-      const inside = v >= start && v < end;
-      if (inside) {
-        el.play().catch(() => {});
-      } else {
-        el.pause();
-        try { el.currentTime = 0; } catch {}
-      }
-    });
-    return () => unsub();
-  }, [progress, start, end]);
+    const el = ref.current;
+    if (!el) return;
+    const inside = progress >= a && progress < b;
+    if (inside) {
+      el.play().catch(() => {});
+    } else {
+      el.pause();
+      try { el.currentTime = 0; } catch {}
+    }
+  }, [progress, a, b]);
 
   return (
-    <motion.video
+    <video
       ref={ref}
       src={src}
       muted
       playsInline
       preload="auto"
-      className="absolute inset-0 h-full w-full object-cover rounded-3xl shadow-2xl"
-      style={{ opacity, scale }}
+      className="absolute inset-0 h-full w-full object-cover rounded-3xl shadow-2xl transition-opacity duration-150"
+      style={{ opacity, transform: `scale(${scale})` }}
     />
   );
 }
+/* ------------------------------------------------------------------------------- */
 
 const Metaverse = () => {
-  
+  /* ----- Scroll rail for the 3 intro videos (added) ----- */
   const railRef = useRef<HTMLDivElement | null>(null);
-  const { scrollYProgress } = useScroll({
-    target: railRef,
-    offset: ['start start', 'end end'],
-  });
-  const smooth = useSpring(scrollYProgress, { stiffness: 80, damping: 20, mass: 0.5 });
+  const [progress, setProgress] = useState(0); // 0..1 across the rail
+
+  useEffect(() => {
+    const el = railRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      const top = el.offsetTop;
+      const h = el.offsetHeight;
+      const vh = window.innerHeight;
+      const y = window.scrollY;
+      const p = clamp((y - top) / (h - vh), 0, 1);
+      setProgress(p);
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen py-8">
       <div className="container mx-auto px-4">
 
-        
+        {/* ===================== New: Scroll-driven video section (film4→film6) ===================== */}
         <section ref={railRef} className="relative mb-12 h-[320vh]">
           <div className="sticky top-0 h-screen overflow-hidden rounded-3xl">
-            <ScrollVideo src="/film4.mp4" start={0.00} end={0.33} progress={smooth} />
-            <ScrollVideo src="/film5.mp4" start={0.33} end={0.66} progress={smooth} />
-            <ScrollVideo src="/film6.mp4" start={0.66} end={0.99} progress={smooth} />
-            
+            <ScrollVideo src="/film4.mp4" a={0.00} b={0.33} progress={progress} />
+            <ScrollVideo src="/film5.mp4" a={0.33} b={0.66} progress={progress} />
+            <ScrollVideo src="/film6.mp4" a={0.66} b={0.99} progress={progress} />
             <div className="pointer-events-none absolute inset-0 rounded-3xl bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(0,0,0,0.6)_100%)]" />
-            <motion.div
-              className="absolute bottom-6 left-0 right-0 text-center text-xs md:text-sm text-white/80"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
+            <div className="absolute bottom-6 left-0 right-0 text-center text-xs md:text-sm text-white/80">
               Scroll to explore
-            </motion.div>
+            </div>
           </div>
         </section>
-        
+        {/* ===================== End new section ===================== */}
 
-        
+        {/* Header */}
         <div className="text-center mb-12">
           <Badge variant="secondary" className="mb-4">
             <Sparkles className="h-3 w-3 mr-1" />
@@ -99,7 +106,7 @@ const Metaverse = () => {
           </p>
         </div>
 
-        
+        {/* Placeholder Content Area */}
         <div className="mb-12">
           <Card className="border-2 border-dashed border-muted-foreground/20 bg-muted/10">
             <CardContent className="p-12 text-center">
@@ -119,7 +126,7 @@ const Metaverse = () => {
           </Card>
         </div>
 
-        
+        {/* Features Preview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           <Card className="group hover:shadow-lg transition-all duration-300">
             <CardHeader>
@@ -158,7 +165,7 @@ const Metaverse = () => {
           </Card>
         </div>
 
-        
+        {/* Technical Requirements */}
         <Card className="mb-12">
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -193,7 +200,7 @@ const Metaverse = () => {
           </CardContent>
         </Card>
 
-        
+        {/* Call to Action */}
         <div className="text-center">
           <Card className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950 border-purple-200 dark:border-purple-800">
             <CardContent className="p-8">
