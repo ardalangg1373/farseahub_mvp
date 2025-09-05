@@ -14,25 +14,20 @@ function segOpacityOverlap(p: number, a: number, b: number, ov = 0.10) {
   if (p > foutStart && p < foutEnd) return clamp(1 - (p - foutStart) / (foutEnd - foutStart), 0, 1);
   return 1;
 }
-
-function segProgress(p: number, a: number, b: number) {
-  return clamp((p - a) / (b - a), 0, 1); // 0→1 داخل بازه
-}
+function segProgress(p: number, a: number, b: number) { return clamp((p - a) / (b - a), 0, 1); }
 
 function ScrollVideo({
   src, a, b, progress, ov = 0.10,
 }: { src: string; a: number; b: number; progress: number; ov?: number }) {
   const ref = useRef<HTMLVideoElement | null>(null);
   const opacity = segOpacityOverlap(progress, a, b, ov);
-  const baseScale = 1.25; // زوم ثابت برای پوشاندن واترمارک
+  const baseScale = 1.12;
   const scale = baseScale + (1.0 - baseScale) * opacity * 0.05;
-
   useEffect(() => {
     const el = ref.current; if (!el) return;
     const inside = progress > a - ov && progress < b;
     if (inside) el.play().catch(() => {}); else { el.pause(); try { el.currentTime = 0; } catch {} }
   }, [progress, a, b, ov]);
-
   return (
     <video
       ref={ref}
@@ -71,7 +66,7 @@ const Metaverse = () => {
     return () => { cancelAnimationFrame(raf); window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); };
   }, []);
 
-  // بازه‌های نمایش متن + سمت نمایش (در گاتر مشکی)
+  // بازه‌های نمایش متن + سمت نمایش
   const textBlocks = [
     { range: [0.00, 0.34] as [number, number], text: overlayTexts[0], side: 'left'  },
     { range: [0.33, 0.50] as [number, number], text: overlayTexts[1], side: 'right' },
@@ -81,14 +76,54 @@ const Metaverse = () => {
 
   return (
     <div className="min-h-screen py-8">
-      {/* فونت و انیمیشن گرادیان متن */}
+      {/* فونت و استایل‌ها */}
       <style>{`
+        /* فونت مدرن */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&display=swap');
+
+        /* متن نئونی */
+        .neonText {
+          font-family: 'Orbitron', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+          letter-spacing: 0.02em;
+          color: #8ffcff;
+          text-shadow:
+            0 0 4px rgba(0,255,200,0.85),
+            0 0 12px rgba(0,255,180,0.65),
+            0 0 28px rgba(0,220,160,0.45);
+          animation: neonPulse 2.8s ease-in-out infinite;
+        }
+        @keyframes neonPulse {
+          0%, 100% { filter: brightness(1); }
+          50%      { filter: brightness(1.25); }
+        }
+
+        /* باران سبز سبک متریکس داخل گاتر */
+        .matrixRain {
+          position: absolute; inset: 0;
+          background:
+            /* خطوط عمودی محو */
+            repeating-linear-gradient(
+              90deg,
+              rgba(0,0,0,0) 0px,
+              rgba(0,0,0,0) 10px,
+              rgba(0,255,120,0.10) 11px,
+              rgba(0,255,120,0.10) 12px
+            ),
+            linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.25) 60%, rgba(0,0,0,0.6) 100%);
+          mix-blend-mode: screen;
+          mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
+          animation: rainShift 5s linear infinite;
+        }
+        @keyframes rainShift {
+          0%   { background-position: 0 0, 0 0; }
+          100% { background-position: 0 1200px, 0 0; }
+        }
+
+        /* متن رنگین برای تیترها (اگر لازم شد) */
         .rainbowText {
           background: linear-gradient(90deg,#ff2d55,#ffcc00,#00e5ff,#7a5cff,#ff2d55);
           background-size: 400% 100%;
-          -webkit-background-clip: text;
-          background-clip: text;
-          color: transparent;
+          -webkit-background-clip: text; background-clip: text; color: transparent;
           animation: rainbowShift 8s linear infinite;
           text-shadow: 0 1px 18px rgba(0,0,0,0.35);
           letter-spacing: -0.01em;
@@ -100,7 +135,6 @@ const Metaverse = () => {
       `}</style>
 
       <div className="container mx-auto px-4">
-
         {/* ========= سکشن ویدئو + گاترهای متنی ========= */}
         <section ref={railRef} className="relative mb-12 h-[320vh]">
           <div className="sticky top-0 h-screen overflow-hidden">
@@ -112,32 +146,38 @@ const Metaverse = () => {
             {/* گرادینت ملایم لبه‌ها روی خود ویدئو */}
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_46%,rgba(0,0,0,0.55)_100%)]" />
 
-            {/* گاترهای مشکی ثابت دو طرف (برای متن) */}
-            <div className="pointer-events-none absolute inset-y-0 left-0 w-[18vw] hidden md:block bg-black"></div>
-            <div className="pointer-events-none absolute inset-y-0 right-0 w-[18vw] hidden md:block bg-black"></div>
+            {/* گاترهای مشکی ثابت دو طرف (برای متن) — باریک‌تر شد */}
+            <div className="pointer-events-none absolute inset-y-0 left-0 hidden md:block md:w-[12vw] lg:w-[10vw] bg-black">
+              <div className="matrixRain" />
+            </div>
+            <div className="pointer-events-none absolute inset-y-0 right-0 hidden md:block md:w-[12vw] lg:w-[10vw] bg-black">
+              <div className="matrixRain" />
+            </div>
 
             {/* متن‌ها داخل گاترها، با حرکت عمودی و فید */}
             {textBlocks.map((b, i) => {
               const [a, c] = b.range;
               const op = segOpacityOverlap(progress, a, c, 0.12);
-              const t  = segProgress(progress, a, c);           // 0..1 داخل بازه
-              const y  = (t * 40 - 20);                          // -20vh → +20vh
+              const t  = segProgress(progress, a, c);       // 0..1 داخل بازه
+              const y  = (t * 40 - 20);                      // -20vh → +20vh
               const sideBase = b.side === 'left'
-                ? { left: '2vw', textAlign: 'left' as const }
-                : { right: '2vw', textAlign: 'right' as const };
+                ? { left: '1.8vw', textAlign: 'left' as const }
+                : { right: '1.8vw', textAlign: 'right' as const };
               return (
                 <div
                   key={i}
                   className="pointer-events-none absolute top-1/2 hidden md:block"
                   style={{
                     ...sideBase,
-                    width: '16vw',
+                    width: 'min(28ch, 9.5vw)',               // باریک‌تر از قبل
                     transform: `translateY(calc(-50% + ${y}vh))`,
                     opacity: op,
                   }}
                 >
-                  <div className="rainbowText font-semibold leading-tight"
-                       style={{ fontSize: 'clamp(18px,1.6vw,28px)' }}>
+                  <div
+                    className="neonText font-semibold leading-tight"
+                    style={{ fontSize: 'clamp(20px, 2.0vw, 36px)', lineHeight: 1.15 }}
+                  >
                     {b.text}
                   </div>
                 </div>
@@ -152,7 +192,7 @@ const Metaverse = () => {
         </section>
         {/* =================== پایان سکشن ویدئو =================== */}
 
-        {/* ======= بقیهٔ محتوای قبلی (بدون تغییر) ======= */}
+        {/* ======= ادامه محتوای صفحه (بدون تغییر جدی) ======= */}
         <div className="text-center mb-12">
           <Badge variant="secondary" className="mb-4">
             <Sparkles className="h-3 w-3 mr-1" />
@@ -278,7 +318,6 @@ const Metaverse = () => {
             </CardContent>
           </Card>
         </div>
-
       </div>
     </div>
   );
