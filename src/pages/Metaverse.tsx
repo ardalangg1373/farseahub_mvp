@@ -7,27 +7,20 @@ import { Sparkles, Gamepad2, Users, Zap, ArrowRight, Play, Settings } from 'luci
 /* ----------------- Crossfade helpers (no libraries) ----------------- */
 const clamp = (v: number, min = 0, max = 1) => Math.min(max, Math.max(min, v));
 
-/** همپوشانی نرم؛ ویدیو در بازه‌ی [a,b] نمایش داده می‌شود.
- *  ov=0.08 یعنی 8٪ از طول کل اسکرول برای همپوشانیِ ورود/خروج استفاده شود.
- *  نتیجه:  ... 0  →  (fade in)  →  1  →  (fade out)  →  0 ...
- */
 function segOpacityOverlap(p: number, a: number, b: number, ov = 0.08) {
-  const finStart = a - ov;           // شروع فید-این
-  const finEnd   = a + ov;           // پایان فید-این
-  const foutStart = b - ov;          // شروع فید-اوت
-  const foutEnd   = b;               // پایان فید-اوت
+  const finStart = a - ov;
+  const finEnd = a + ov;
+  const foutStart = b - ov;
+  const foutEnd = b;
 
   if (p <= finStart || p >= foutEnd) return 0;
 
-  // فید-این: از 0 تا 1
   if (p > finStart && p <= finEnd) {
     return clamp((p - finStart) / (finEnd - finStart), 0, 1);
   }
-  // فید-اوت: از 1 تا 0
   if (p > foutStart && p < foutEnd) {
     return clamp(1 - (p - foutStart) / (foutEnd - foutStart), 0, 1);
   }
-  // هسته‌ی بازه: ۱
   return 1;
 }
 
@@ -36,12 +29,15 @@ function ScrollVideo({
 }: { src: string; a: number; b: number; progress: number; ov?: number }) {
   const ref = useRef<HTMLVideoElement | null>(null);
   const opacity = segOpacityOverlap(progress, a, b, ov);
-  const scale = 1.02 - 0.02 * opacity; // زوم خیلی لطیف
+
+  // زوم ثابت + حرکت نرم
+  const baseScale = 1.15; 
+  const scale = baseScale + (1.0 - baseScale) * opacity * 0.05;
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const inside = progress > a - ov && progress < b; // در زمان همپوشانی هم پلی
+    const inside = progress > a - ov && progress < b;
     if (inside) {
       el.play().catch(() => {});
     } else {
@@ -57,17 +53,19 @@ function ScrollVideo({
       muted
       playsInline
       preload="auto"
-      className="absolute inset-0 h-full w-full object-cover rounded-3xl shadow-2xl will-change-transform"
-      style={{ opacity, transform: `scale(${scale})` }}
+      className="absolute top-0 left-0 w-full h-full object-cover will-change-transform"
+      style={{
+        opacity,
+        transform: `scale(${scale})`,
+      }}
     />
   );
 }
 /* -------------------------------------------------------------------- */
 
 const Metaverse = () => {
-  // ریلی اسکرول برای ۳ ویدیو
   const railRef = useRef<HTMLDivElement | null>(null);
-  const [progress, setProgress] = useState(0); // 0..1
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     const el = railRef.current;
@@ -95,17 +93,14 @@ const Metaverse = () => {
 
         {/* ========= Scroll-driven videos: film4 → film5 → film6 ========= */}
         <section ref={railRef} className="relative mb-12 h-[320vh]">
-          <div className="sticky top-0 h-screen overflow-hidden rounded-3xl">
-            {/* نکته: ترتیب DOM باعث می‌شود ویدیوی بعدی بالای قبلی قرار بگیرد؛
-               opacity پایین مانع دیده‌شدن می‌شود و کراس‌فید تمیز می‌ماند. */}
+          <div className="sticky top-0 h-screen overflow-hidden">
             <ScrollVideo src="/film4.mp4" a={0.00} b={0.34} progress={progress} ov={0.08} />
             <ScrollVideo src="/film5.mp4" a={0.33} b={0.67} progress={progress} ov={0.08} />
             <ScrollVideo src="/film6.mp4" a={0.66} b={1.00} progress={progress} ov={0.08} />
 
-            {/* گرادینت بسیار ملایمِ لبه‌ها */}
-            <div className="pointer-events-none absolute inset-0 rounded-3xl bg-[radial-gradient(ellipse_at_center,transparent_46%,rgba(0,0,0,0.55)_100%)]" />
+            {/* گرادینت خیلی ملایم روی لبه‌ها */}
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_46%,rgba(0,0,0,0.55)_100%)]" />
 
-            {/* راهنمای اسکرول */}
             <div className="absolute bottom-6 left-0 right-0 text-center text-xs md:text-sm text-white/80">
               Scroll to explore
             </div>
@@ -113,7 +108,7 @@ const Metaverse = () => {
         </section>
         {/* =================== پایان سکشن ویدیو =================== */}
 
-        {/* ======= از اینجا به بعد: محتوای اصلی خودت (بدون تغییر) ======= */}
+        {/* ======= محتوای اصلی قبلی (بدون تغییر) ======= */}
         <div className="text-center mb-12">
           <Badge variant="secondary" className="mb-4">
             <Sparkles className="h-3 w-3 mr-1" />
