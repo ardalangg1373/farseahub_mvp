@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, Gamepad2, Users, Zap, ArrowRight, Play, Settings } from 'lucide-react';
 
-/* ----------------- Crossfade helpers (no libraries) ----------------- */
+/* ----------------- Helpers ----------------- */
 const clamp = (v: number, min = 0, max = 1) => Math.min(max, Math.max(min, v));
 
 function segOpacityOverlap(p: number, a: number, b: number, ov = 0.08) {
@@ -29,9 +29,7 @@ function ScrollVideo({
 }: { src: string; a: number; b: number; progress: number; ov?: number }) {
   const ref = useRef<HTMLVideoElement | null>(null);
   const opacity = segOpacityOverlap(progress, a, b, ov);
-
-  // زوم ثابت بزرگ‌تر + حرکت نرم
-  const baseScale = 1.25; // افزایش از 1.15 به 1.25
+  const baseScale = 1.25;
   const scale = baseScale + (1.0 - baseScale) * opacity * 0.05;
 
   useEffect(() => {
@@ -53,7 +51,7 @@ function ScrollVideo({
       muted
       playsInline
       preload="auto"
-      className="absolute top-0 left-0 w-full h-full object-cover will-change-transform"
+      className="absolute top-0 left-0 w-full h-full object-cover"
       style={{
         opacity,
         transform: `scale(${scale})`,
@@ -61,8 +59,16 @@ function ScrollVideo({
     />
   );
 }
-/* -------------------------------------------------------------------- */
 
+/* متن‌های ما */
+const overlayTexts = [
+  "For too long, mainstream media has told our story for us.",
+  "Now, it’s time for Middle Eastern voices to shape their own narrative.",
+  "In FarsiHub, we show the world who we truly are — the way we choose.",
+  "A metaverse built by us, for us — and open to the world.",
+];
+
+/* ----------------- Component ----------------- */
 const Metaverse = () => {
   const railRef = useRef<HTMLDivElement | null>(null);
   const [progress, setProgress] = useState(0);
@@ -76,8 +82,7 @@ const Metaverse = () => {
     let raf: number;
 
     const update = () => {
-      // lerp → نرم کردن حرکت
-      current += (target - current) * 0.08; // ضریب کوچکتر = نرم‌تر
+      current += (target - current) * 0.08;
       setProgress(current);
       raf = requestAnimationFrame(update);
     };
@@ -101,19 +106,52 @@ const Metaverse = () => {
     };
   }, []);
 
+  /* متن‌ها را به بازه‌های فیلم وصل کنیم */
+  const textBlocks = [
+    { range: [0.00, 0.34], text: overlayTexts[0], align: "right" },
+    { range: [0.33, 0.50], text: overlayTexts[1], align: "left" },
+    { range: [0.50, 0.67], text: overlayTexts[2], align: "right" },
+    { range: [0.66, 1.00], text: overlayTexts[3], align: "left" },
+  ];
+
   return (
     <div className="min-h-screen py-8">
       <div className="container mx-auto px-4">
 
-        {/* ========= Scroll-driven videos: film4 → film5 → film6 ========= */}
+        {/* ========= Scroll-driven videos with split-screen texts ========= */}
         <section ref={railRef} className="relative mb-12 h-[320vh]">
-          <div className="sticky top-0 h-screen overflow-hidden">
-            <ScrollVideo src="/film4.mp4" a={0.00} b={0.34} progress={progress} ov={0.08} />
-            <ScrollVideo src="/film5.mp4" a={0.33} b={0.67} progress={progress} ov={0.08} />
-            <ScrollVideo src="/film6.mp4" a={0.66} b={1.00} progress={progress} ov={0.08} />
+          <div className="sticky top-0 h-screen overflow-hidden flex items-center justify-center">
+            {/* Videos */}
+            <ScrollVideo src="/film4.mp4" a={0.00} b={0.34} progress={progress} />
+            <ScrollVideo src="/film5.mp4" a={0.33} b={0.67} progress={progress} />
+            <ScrollVideo src="/film6.mp4" a={0.66} b={1.00} progress={progress} />
 
-            {/* گرادینت بسیار ملایم روی لبه‌ها */}
+            {/* Gradient overlay */}
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_46%,rgba(0,0,0,0.55)_100%)]" />
+
+            {/* Split-screen texts */}
+            {textBlocks.map((block, i) => {
+              const opacity = segOpacityOverlap(progress, block.range[0], block.range[1], 0.1);
+              const sideClass =
+                block.align === "right"
+                  ? "right-12 text-right"
+                  : "left-12 text-left";
+              return (
+                <div
+                  key={i}
+                  className={`absolute top-1/2 transform -translate-y-1/2 max-w-md text-white transition-all duration-700`}
+                  style={{
+                    opacity,
+                  }}
+                >
+                  <p
+                    className={`text-2xl md:text-3xl font-bold drop-shadow-xl ${sideClass}`}
+                  >
+                    {block.text}
+                  </p>
+                </div>
+              );
+            })}
 
             <div className="absolute bottom-6 left-0 right-0 text-center text-xs md:text-sm text-white/80">
               Scroll to explore
@@ -122,7 +160,7 @@ const Metaverse = () => {
         </section>
         {/* =================== پایان سکشن ویدیو =================== */}
 
-        {/* ======= محتوای اصلی قبلی (بدون تغییر) ======= */}
+        {/* ======= بقیه‌ی محتوای اصلی (بدون تغییر) ======= */}
         <div className="text-center mb-12">
           <Badge variant="secondary" className="mb-4">
             <Sparkles className="h-3 w-3 mr-1" />
