@@ -65,6 +65,15 @@ function useReveal<T extends HTMLElement>(once = true, margin = "0px 0px -10% 0p
   return { ref, show } as const;
 }
 
+/** Compute a smooth 0..1 progress for any element within viewport */
+function getInViewProgress(rect: DOMRect, vh: number) {
+  const start = vh;
+  const end = -rect.height;
+  const y = rect.top;
+  const p = (start - y) / (start - end);
+  return Math.min(1, Math.max(0, p));
+}
+
 /* ===========================
    Small UI Parts
 =========================== */
@@ -85,6 +94,41 @@ function ScrollProgressBar() {
   );
 }
 
+/** Lightweight 'Lottie-style' SVG particles & light streaks */
+function LiteLottie() {
+  return (
+    <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="lg" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="rgba(255,255,255,0)" />
+          <stop offset="0.5" stopColor="rgba(255,255,255,0.8)" />
+          <stop offset="1" stopColor="rgba(255,255,255,0)" />
+        </linearGradient>
+      </defs>
+      <g opacity="0.25">
+        <rect x="-50" y="20" width="50" height="1.2" fill="url(#lg)">
+          <animate attributeName="x" from="-50" to="150" dur="6s" repeatCount="indefinite" />
+        </rect>
+        <rect x="-60" y="60" width="60" height="1.2" fill="url(#lg)" opacity="0.7">
+          <animate attributeName="x" from="-60" to="160" dur="8s" repeatCount="indefinite" />
+        </rect>
+      </g>
+      {[...Array(18)].map((_, i) => {
+        const rx = (i * 17) % 100;
+        const ry = (i * 29) % 100;
+        return (
+          <g key={i} opacity="0.8">
+            <circle cx={rx} cy={ry} r="0.4" fill="white">
+              <animate attributeName="opacity" values="0;1;0" dur={`${2 + (i % 4)}s`} repeatCount="indefinite" />
+              <animate attributeName="cy" from={ry} to={ry - 10} dur={`${5 + (i % 5)}s`} repeatCount="indefinite" />
+            </circle>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
 function StickyTOC({ ids, labels, activeId }: { ids: string[]; labels: string[]; activeId: string }) {
   return (
     <aside className="hidden lg:block lg:sticky lg:top-24 self-start w-64 shrink-0 pr-6">
@@ -97,9 +141,7 @@ function StickyTOC({ ids, labels, activeId }: { ids: string[]; labels: string[];
               <a
                 key={id}
                 href={`#${id}`}
-                className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
-                  active ? "text-white" : "text-zinc-400 hover:text-zinc-200"
-                }`}
+                className={`block rounded-lg px-3 py-2 text-sm transition-colors ${active ? "text-white" : "text-zinc-400 hover:text-zinc-200"}`}
                 style={
                   active
                     ? {
@@ -138,8 +180,7 @@ function Section({ id, title, children }: { id: string; title: string; children:
         <span
           className="inline-block h-2 w-2 rounded-full"
           style={{
-            background:
-              "radial-gradient(circle, rgba(229,9,20,1) 0%, rgba(229,9,20,0.4) 60%, transparent 70%)",
+            background: "radial-gradient(circle, rgba(229,9,20,1) 0%, rgba(229,9,20,0.4) 60%, transparent 70%)",
             boxShadow: "0 0 18px rgba(229,9,20,0.8)",
           }}
         />
@@ -151,7 +192,7 @@ function Section({ id, title, children }: { id: string; title: string; children:
 }
 
 /* ===========================
-   Whitepaper Page with Hestia-like motion
+   Whitepaper Page
 =========================== */
 
 const SECTIONS = [
@@ -166,17 +207,72 @@ const SECTIONS = [
   { id: "appendix", label: "Appendices" },
 ];
 
+/** Full-screen pinned scene */
+function PinScene({ index, title, subtitle }: { index: number; title: React.ReactNode; subtitle?: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [p, setP] = useState(0);
+  useEffect(() => {
+    let raf = 0;
+    const loop = () => {
+      const el = ref.current;
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        const vh = window.innerHeight || 1;
+        setP(getInViewProgress(rect, vh));
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  return (
+    <section className="relative h-[160vh]">
+      <div ref={ref} className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
+        <div
+          className="absolute inset-0 transition-opacity duration-200"
+          style={{ opacity: Math.max(0, Math.min(1, 1 - Math.abs(p * 2 - 1))) }}
+        >
+          <div
+            className="absolute -inset-24"
+            style={{
+              background: `radial-gradient(50rem 50rem at ${20 + index * 30}% 20%, rgba(229,9,20,0.12), transparent 60%)`,
+              filter: "blur(4px)",
+            }}
+          />
+        </div>
+        <div className="relative z-10 text-center px-6">
+          <h2
+            className="split-title text-4xl md:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent"
+            style={{
+              backgroundImage:
+                "linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.85) 35%, rgba(229,9,20,0.9) 100%)",
+            }}
+          >
+            <span className="split-word">
+              <span>F</span><span>a</span><span>r</span><span>s</span><span>i</span><span>H</span><span>u</span><span>b</span>
+            </span>
+            &nbsp;
+            <span className="split-word">
+              <span>W</span><span>h</span><span>i</span><span>t</span><span>e</span><span>p</span><span>a</span><span>p</span><span>e</span><span>r</span>
+            </span>
+          </h2>
+          {subtitle ? <p className="mt-4 text-zinc-300">{subtitle}</p> : null}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 const Whitepaper = () => {
   const ids = useMemo(() => SECTIONS.map((s) => s.id), []);
   const activeId = useScrollSpy(ids);
 
-  /* ===== Scroll-scrubbed video + parallax layers ===== */
   const stageRef = useRef<HTMLDivElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const glowRef = useRef<HTMLDivElement | null>(null);
   const gridRef = useRef<HTMLDivElement | null>(null);
-  const particlesRef = useRef<HTMLDivElement | null>(null);
-  const [duration, setDuration] = useState(8); // اگر ویدیو کوتاه/بلند بود می‌گیریم
+  const [duration, setDuration] = useState(8);
 
   useEffect(() => {
     const v = videoRef.current;
@@ -193,35 +289,19 @@ const Whitepaper = () => {
       const v = videoRef.current;
       const glow = glowRef.current;
       const grid = gridRef.current;
-      const particles = particlesRef.current;
       if (stage) {
         const rect = stage.getBoundingClientRect();
         const vh = window.innerHeight || 1;
-        // progress از 0 (خارج از بالا) تا 1 (خارج از پایین)
         const p = 1 - Math.min(1, Math.max(0, (rect.top + rect.height * 0.5) / (vh + rect.height)));
-        // ویدیو را اسکراب کن:
-        if (v && !isNaN(duration)) {
-          v.currentTime = duration * p;
-        }
-        // پارالاکس: عمق‌های مختلف
+        if (v && !isNaN(duration)) v.currentTime = duration * p;
         const translate = (el: HTMLElement | null, strength: number) => {
           if (!el) return;
           el.style.transform = `translateY(${(p - 0.5) * strength}px)`;
         };
         translate(glow as any, -60);
         translate(grid as any, -30);
-        translate(particles as any, -10);
-
-        // تیتر شناور داخل استیج
-        const headings = stage.querySelectorAll<HTMLElement>("[data-float]");
-        headings.forEach((h, i) => {
-          const speed = (i + 1) * 6; // اختلاف سرعت
-          h.style.transform = `translateY(${(1 - p) * speed}px)`;
-          h.style.opacity = String(Math.min(1, p * 1.8));
-          h.style.webkitMaskImage =
-            "linear-gradient(to bottom, rgba(0,0,0,1), rgba(0,0,0,0.4) 70%, transparent 100%)";
-          h.style.maskImage = h.style.webkitMaskImage;
-        });
+        const title = stage.querySelector<HTMLElement>(".hero-title");
+        if (title) title.style.opacity = String(Math.min(1, p * 1.8));
       }
       raf = requestAnimationFrame(loop);
     };
@@ -240,7 +320,7 @@ const Whitepaper = () => {
     >
       <ScrollProgressBar />
 
-      {/* ===== HERO / STAGE with scroll-scrub video ===== */}
+      {/* ===== HERO / STAGE ===== */}
       <section className="pt-24 md:pt-28 pb-10">
         <div className="max-w-6xl mx-auto px-6">
           <div
@@ -248,7 +328,6 @@ const Whitepaper = () => {
             className="relative rounded-[28px] border border-white/10 overflow-hidden bg-black/50"
             style={{ backdropFilter: "blur(12px)" }}
           >
-            {/* پارالاکس لایه‌ها */}
             <div ref={glowRef} className="pointer-events-none absolute -inset-20"
                  style={{ background: "radial-gradient(40rem 40rem at 50% 20%, rgba(229,9,20,0.18), transparent 60%)" }} />
             <div ref={gridRef} className="pointer-events-none absolute inset-0 opacity-[0.08]"
@@ -257,45 +336,41 @@ const Whitepaper = () => {
                      "linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)",
                    backgroundSize: "48px 48px, 48px 48px",
                  }} />
-            <div ref={particlesRef} className="pointer-events-none absolute inset-0">
-              {/* نقاط ساده */}
-              <div className="absolute left-[10%] top-[20%] h-1 w-1 rounded-full bg-white/50" />
-              <div className="absolute left-[80%] top-[35%] h-1 w-1 rounded-full bg-white/50" />
-              <div className="absolute left-[60%] top-[70%] h-1 w-1 rounded-full bg-white/50" />
-            </div>
+            <LiteLottie />
 
-            {/* ویدیو مرکزی که با اسکرول اسکراب می‌شود */}
+            {/* video */}
             <div className="relative aspect-[16/9] md:aspect-[12/5]">
               <video
                 ref={videoRef}
-                src="/videos/whitepaper-hero.mp4" // ⬅️ مسیر ویدیو را عوض کن
+                src="/whitepaper-film.mp4"   // فایل در روت public
                 muted
                 playsInline
                 preload="metadata"
                 className="h-full w-full object-cover opacity-90"
               />
-              {/* تیترهای شناور روی استیج */}
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                 <div className="text-center">
                   <h1
-                    data-float
-                    className="text-4xl md:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent"
+                    className="hero-title text-4xl md:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent split-title"
                     style={{
                       backgroundImage:
                         "linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.85) 35%, rgba(229,9,20,0.9) 100%)",
                       textShadow: "0 0 24px rgba(229,9,20,0.35)",
                     }}
                   >
-                    FarseaHub Whitepaper
+                    <span className="split-word">
+                      <span>F</span><span>a</span><span>r</span><span>s</span><span>i</span><span>H</span><span>u</span><span>b</span>
+                    </span>
+                    &nbsp;
+                    <span className="split-word">
+                      <span>W</span><span>h</span><span>i</span><span>t</span><span>e</span><span>p</span><span>a</span><span>p</span><span>e</span><span>r</span>
+                    </span>
                   </h1>
-                  <p data-float className="mt-3 md:mt-4 text-zinc-300 max-w-xl mx-auto">
-                    Scroll down — let it fly.
-                  </p>
+                  <p className="mt-3 md:mt-4 text-zinc-300 max-w-xl mx-auto">Scroll down — let it fly.</p>
                 </div>
               </div>
             </div>
 
-            {/* CTA بالای استیج */}
             <div className="relative p-5 md:p-6 flex flex-wrap items-center justify-between gap-3 border-t border-white/10">
               <p className="text-sm text-zinc-300">
                 Metaverse, Marketplace, and Community-owned economy powered by <b>FarsiCoin</b>.
@@ -323,7 +398,12 @@ const Whitepaper = () => {
         </div>
       </section>
 
-      {/* ===== Body with sticky TOC & sections ===== */}
+      {/* SCENES */}
+      <PinScene index={0} title={"FarsiHub Whitepaper"} subtitle={"Community-owned, culturally tailored."} />
+      <PinScene index={1} title={"Tokenomics"} subtitle={"Fair distribution • Real utility"} />
+      <PinScene index={2} title={"Governance"} subtitle={"Transparent treasury • Community vote"} />
+
+      {/* BODY */}
       <div className="max-w-6xl mx-auto px-6 pb-24 grid grid-cols-1 lg:grid-cols-[16rem_1fr] gap-8">
         <StickyTOC ids={ids} labels={SECTIONS.map((s) => s.label)} activeId={activeId} />
         <div className="min-w-0">
@@ -333,6 +413,7 @@ const Whitepaper = () => {
               culturally tuned hubs—<i>Persian Bazaar</i>, <i>EastWorld Modern</i>—with community ownership via FarsiCoin.
             </p>
           </Section>
+
           <Section id="utility" title="FarsiCoin Utility">
             <ul className="list-disc pl-6 space-y-2">
               <li>Marketplace fees, creator payouts, and ticketing.</li>
@@ -341,6 +422,7 @@ const Whitepaper = () => {
               <li>In-world payments for games, assets, services.</li>
             </ul>
           </Section>
+
           <Section id="tokenomics" title="Tokenomics">
             <div className="grid md:grid-cols-2 gap-6">
               <div>
@@ -363,12 +445,15 @@ const Whitepaper = () => {
               </div>
             </div>
           </Section>
+
           <Section id="distribution" title="Distribution & Vesting">
             Linear vesting with cliffs for team/investors; engagement-tied community emissions.
           </Section>
+
           <Section id="governance" title="Governance & Treasury">
             Token-weighted proposals, multi-sig treasury, scheduled transparency reports.
           </Section>
+
           <Section id="roadmap" title="Roadmap">
             <ol className="list-decimal pl-6 space-y-2">
               <li>MVP hubs (Persian Bazaar & EastWorld Modern).</li>
@@ -377,12 +462,15 @@ const Whitepaper = () => {
               <li>Mainnet & Governance v1.</li>
             </ol>
           </Section>
+
           <Section id="security" title="Security & Audits">
             Audits, bug bounties, staged rollouts; minimize custody, user-owned assets.
           </Section>
+
           <Section id="legal" title="Legal / Risk">
             Jurisdiction-aware disclaimers; evolving compliance; transparency.
           </Section>
+
           <Section id="appendix" title="Appendices & Links">
             <ul className="list-disc pl-6 space-y-2">
               <li><a className="underline decoration-red-600/60 underline-offset-4" href="/whitepaper.pdf">Whitepaper PDF</a></li>
@@ -391,6 +479,32 @@ const Whitepaper = () => {
           </Section>
         </div>
       </div>
+
+      <style>{`
+        .split-title .split-word { display:inline-block; white-space:pre; }
+        .split-title .split-word > span {
+          display:inline-block;
+          transform: translateY(18px) rotateX(35deg);
+          opacity: 0;
+          filter: drop-shadow(0 0 10px rgba(229,9,20,0.25));
+          animation: riseIn 900ms cubic-bezier(.2,.7,.2,1) forwards;
+        }
+        .split-title .split-word > span:nth-child(1){ animation-delay: 30ms; }
+        .split-title .split-word > span:nth-child(2){ animation-delay: 70ms; }
+        .split-title .split-word > span:nth-child(3){ animation-delay: 110ms; }
+        .split-title .split-word > span:nth-child(4){ animation-delay: 150ms; }
+        .split-title .split-word > span:nth-child(5){ animation-delay: 190ms; }
+        .split-title .split-word > span:nth-child(6){ animation-delay: 230ms; }
+        .split-title .split-word > span:nth-child(7){ animation-delay: 270ms; }
+        .split-title .split-word > span:nth-child(8){ animation-delay: 310ms; }
+        .split-title .split-word > span:nth-child(9){ animation-delay: 350ms; }
+        .split-title .split-word > span:nth-child(10){ animation-delay: 390ms; }
+        @keyframes riseIn {
+          0% { transform: translateY(18px) rotateX(35deg); opacity:0; }
+          60% { transform: translateY(-2px) rotateX(0deg); opacity:1; }
+          100% { transform: translateY(0) rotateX(0deg); opacity:1; }
+        }
+      `}</style>
     </div>
   );
 };
