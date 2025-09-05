@@ -65,7 +65,6 @@ function useReveal<T extends HTMLElement>(once = true, margin = "0px 0px -10% 0p
   return { ref, show } as const;
 }
 
-/** Compute a smooth 0..1 progress for any element within viewport */
 function getInViewProgress(rect: DOMRect, vh: number) {
   const start = vh;
   const end = -rect.height;
@@ -94,7 +93,6 @@ function ScrollProgressBar() {
   );
 }
 
-/** Lightweight 'Lottie-style' SVG particles & light streaks */
 function LiteLottie() {
   return (
     <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -207,7 +205,6 @@ const SECTIONS = [
   { id: "appendix", label: "Appendices" },
 ];
 
-/** Full-screen pinned scene */
 function PinScene({ index, title, subtitle }: { index: number; title: React.ReactNode; subtitle?: React.ReactNode }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const [p, setP] = useState(0);
@@ -249,13 +246,7 @@ function PinScene({ index, title, subtitle }: { index: number; title: React.Reac
                 "linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.85) 35%, rgba(229,9,20,0.9) 100%)",
             }}
           >
-            <span className="split-word">
-              <span>F</span><span>a</span><span>r</span><span>s</span><span>i</span><span>H</span><span>u</span><span>b</span>
-            </span>
-            &nbsp;
-            <span className="split-word">
-              <span>W</span><span>h</span><span>i</span><span>t</span><span>e</span><span>p</span><span>a</span><span>p</span><span>e</span><span>r</span>
-            </span>
+            {title}
           </h2>
           {subtitle ? <p className="mt-4 text-zinc-300">{subtitle}</p> : null}
         </div>
@@ -276,23 +267,38 @@ const Whitepaper = () => {
   const [durA, setDurA] = useState(8);
   const [durB, setDurB] = useState(8);
 
-  // متادیتای هر دو ویدیو
+  // لود متادیتا + پینت فریم اول
   useEffect(() => {
     const va = videoRefA.current;
     const vb = videoRefB.current;
-    if (va) {
-      const onMetaA = () => setDurA(va.duration || 8);
-      va.addEventListener("loadedmetadata", onMetaA);
-      return () => va.removeEventListener("loadedmetadata", onMetaA);
-    }
-    if (vb) {
-      const onMetaB = () => setDurB(vb.duration || 8);
-      vb.addEventListener("loadedmetadata", onMetaB);
-      return () => vb.removeEventListener("loadedmetadata", onMetaB);
-    }
+
+    const prime = (v: HTMLVideoElement | null, setDur?: (n: number) => void) => {
+      if (!v) return () => {};
+      const onMeta = () => {
+        if (setDur) setDur(isFinite(v.duration) ? v.duration : 8);
+        try {
+          v.pause();
+          v.currentTime = 0.001; // تضمین پینت
+        } catch {}
+      };
+      if (v.readyState >= 2) onMeta();
+      v.addEventListener("loadedmetadata", onMeta);
+      v.addEventListener("loadeddata", onMeta);
+      return () => {
+        v.removeEventListener("loadedmetadata", onMeta);
+        v.removeEventListener("loadeddata", onMeta);
+      };
+    };
+
+    const cleanA = prime(va, setDurA);
+    const cleanB = prime(vb, setDurB);
+    return () => {
+      cleanA && cleanA();
+      cleanB && cleanB();
+    };
   }, []);
 
-  // اسکراب‌کردن زمان و کراس‌فید نرم
+  // اسکراب با اسکرول + کراس فید
   useEffect(() => {
     let raf = 0;
     const clamp = (x: number, a = 0, b = 1) => Math.min(b, Math.max(a, x));
@@ -314,7 +320,6 @@ const Whitepaper = () => {
         const p = 1 - Math.min(1, Math.max(0, (rect.top + rect.height * 0.5) / (vh + rect.height))); // 0..1
         const seg = p * 2; // 0..2
 
-        // زمان هر ویدیو بر اساس اسکرول
         if (va && !isNaN(durA)) {
           const localA = clamp(seg, 0, 1);
           va.currentTime = durA * localA;
@@ -324,21 +329,18 @@ const Whitepaper = () => {
           vb.currentTime = durB * localB;
         }
 
-        // کراس‌فید نرم دور نقطه‌ی انتقال (seg=1)
-        const fadeWidth = 0.18; // هرچه کوچکتر، انتقال تیزتر
+        const fadeWidth = 0.18;
         const aOpacity = 1 - smoothstep(1 - fadeWidth, 1, seg);
         const bOpacity = smoothstep(1, 1 + fadeWidth, seg);
+        if (va) va.style.opacity = String(aOpacity);
+        if (vb) vb.style.opacity = String(bOpacity);
 
-        if (va) (va.style as any).opacity = String(aOpacity);
-        if (vb) (vb.style as any).opacity = String(bOpacity);
-
-        // پارالاکس و شفافیت عنوان مثل قبل
         const translate = (el: HTMLElement | null, strength: number) => {
           if (!el) return;
           el.style.transform = `translateY(${(p - 0.5) * strength}px)`;
         };
-        translate(glow as any, -60);
-        translate(grid as any, -30);
+        translate(glow, -60);
+        translate(grid, -30);
 
         const title = stage.querySelector<HTMLElement>(".hero-title");
         if (title) title.style.opacity = String(Math.min(1, p * 1.8));
@@ -389,19 +391,19 @@ const Whitepaper = () => {
               {/* ویدیو اول */}
               <video
                 ref={videoRefA}
-                src="/film7.mp4" /* در public */
+                src="/film7.mp4"
                 muted
                 playsInline
-                preload="metadata"
+                preload="auto"
                 className="absolute inset-0 h-full w-full object-cover opacity-100 transition-opacity duration-300"
               />
               {/* ویدیو دوم */}
               <video
                 ref={videoRefB}
-                src="/film8.mp4" /* در public */
+                src="/film8.mp4"
                 muted
                 playsInline
-                preload="metadata"
+                preload="auto"
                 className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300"
               />
 
@@ -416,13 +418,7 @@ const Whitepaper = () => {
                       textShadow: "0 0 24px rgba(229,9,20,0.35)",
                     }}
                   >
-                    <span className="split-word">
-                      <span>F</span><span>a</span><span>r</span><span>s</span><span>i</span><span>H</span><span>u</span><span>b</span>
-                    </span>
-                    &nbsp;
-                    <span className="split-word">
-                      <span>W</span><span>h</span><span>i</span><span>t</span><span>e</span><span>p</span><span>a</span><span>p</span><span>e</span><span>r</span>
-                    </span>
+                    FarsiHub Whitepaper
                   </h1>
                   <p className="mt-3 md:mt-4 text-zinc-300 max-w-xl mx-auto">Scroll down — let it fly.</p>
                 </div>
@@ -446,7 +442,7 @@ const Whitepaper = () => {
                 </a>
                 <Link
                   to="/farsicoin"
-                  className="rounded-xl px-4 py-3 text-sm font-semibold bg-white/10 border border-white/10 hover:bg白/15 transition"
+                  className="rounded-xl px-4 py-3 text-sm font-semibold bg-white/10 border border-white/10 hover:bg-white/15 transition"
                 >
                   View FarsiCoin
                 </Link>
