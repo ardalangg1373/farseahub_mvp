@@ -7,41 +7,30 @@ import { Sparkles, Gamepad2, Users, Zap, ArrowRight, Play, Settings } from 'luci
 /* ----------------- Helpers ----------------- */
 const clamp = (v: number, min = 0, max = 1) => Math.min(max, Math.max(min, v));
 
-function segOpacityOverlap(p: number, a: number, b: number, ov = 0.08) {
-  const finStart = a - ov;
-  const finEnd = a + ov;
-  const foutStart = b - ov;
-  const foutEnd = b;
-
+function segOpacityOverlap(p: number, a: number, b: number, ov = 0.10) {
+  const finStart = a - ov, finEnd = a + ov, foutStart = b - ov, foutEnd = b;
   if (p <= finStart || p >= foutEnd) return 0;
-
-  if (p > finStart && p <= finEnd) {
-    return clamp((p - finStart) / (finEnd - finStart), 0, 1);
-  }
-  if (p > foutStart && p < foutEnd) {
-    return clamp(1 - (p - foutStart) / (foutEnd - foutStart), 0, 1);
-  }
+  if (p > finStart && p <= finEnd)  return clamp((p - finStart) / (finEnd - finStart), 0, 1);
+  if (p > foutStart && p < foutEnd) return clamp(1 - (p - foutStart) / (foutEnd - foutStart), 0, 1);
   return 1;
 }
 
+function segProgress(p: number, a: number, b: number) {
+  return clamp((p - a) / (b - a), 0, 1); // 0→1 داخل بازه
+}
+
 function ScrollVideo({
-  src, a, b, progress, ov = 0.08,
+  src, a, b, progress, ov = 0.10,
 }: { src: string; a: number; b: number; progress: number; ov?: number }) {
   const ref = useRef<HTMLVideoElement | null>(null);
   const opacity = segOpacityOverlap(progress, a, b, ov);
-  const baseScale = 1.25;
+  const baseScale = 1.25; // زوم ثابت برای پوشاندن واترمارک
   const scale = baseScale + (1.0 - baseScale) * opacity * 0.05;
 
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
+    const el = ref.current; if (!el) return;
     const inside = progress > a - ov && progress < b;
-    if (inside) {
-      el.play().catch(() => {});
-    } else {
-      el.pause();
-      try { el.currentTime = 0; } catch {}
-    }
+    if (inside) el.play().catch(() => {}); else { el.pause(); try { el.currentTime = 0; } catch {} }
   }, [progress, a, b, ov]);
 
   return (
@@ -52,15 +41,12 @@ function ScrollVideo({
       playsInline
       preload="auto"
       className="absolute top-0 left-0 w-full h-full object-cover"
-      style={{
-        opacity,
-        transform: `scale(${scale})`,
-      }}
+      style={{ opacity, transform: `scale(${scale})` }}
     />
   );
 }
 
-/* متن‌های ما */
+/* متن‌ها */
 const overlayTexts = [
   "For too long, mainstream media has told our story for us.",
   "Now, it’s time for Middle Eastern voices to shape their own narrative.",
@@ -68,99 +54,105 @@ const overlayTexts = [
   "A metaverse built by us, for us — and open to the world.",
 ];
 
-/* ----------------- Component ----------------- */
 const Metaverse = () => {
   const railRef = useRef<HTMLDivElement | null>(null);
   const [progress, setProgress] = useState(0);
 
+  // اسکرول نرم با lerp
   useEffect(() => {
-    const el = railRef.current;
-    if (!el) return;
-
-    let target = 0;
-    let current = 0;
-    let raf: number;
-
-    const update = () => {
-      current += (target - current) * 0.08;
-      setProgress(current);
-      raf = requestAnimationFrame(update);
-    };
-
+    const el = railRef.current; if (!el) return;
+    let target = 0, current = 0, raf = 0;
+    const update = () => { current += (target - current) * 0.08; setProgress(current); raf = requestAnimationFrame(update); };
     const onScroll = () => {
-      const top = el.offsetTop;
-      const h = el.offsetHeight;
-      const vh = window.innerHeight;
-      const y = window.scrollY;
+      const top = el.offsetTop, h = el.offsetHeight, vh = window.innerHeight, y = window.scrollY;
       target = clamp((y - top) / (h - vh), 0, 1);
     };
-
-    update();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
-    };
+    update(); window.addEventListener('scroll', onScroll, { passive: true }); window.addEventListener('resize', onScroll);
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); };
   }, []);
 
-  /* متن‌ها را به بازه‌های فیلم وصل کنیم */
+  // بازه‌های نمایش متن + سمت نمایش (در گاتر مشکی)
   const textBlocks = [
-    { range: [0.00, 0.34], text: overlayTexts[0], align: "right" },
-    { range: [0.33, 0.50], text: overlayTexts[1], align: "left" },
-    { range: [0.50, 0.67], text: overlayTexts[2], align: "right" },
-    { range: [0.66, 1.00], text: overlayTexts[3], align: "left" },
+    { range: [0.00, 0.34] as [number, number], text: overlayTexts[0], side: 'left'  },
+    { range: [0.33, 0.50] as [number, number], text: overlayTexts[1], side: 'right' },
+    { range: [0.50, 0.67] as [number, number], text: overlayTexts[2], side: 'left'  },
+    { range: [0.66, 1.00] as [number, number], text: overlayTexts[3], side: 'right' },
   ];
 
   return (
     <div className="min-h-screen py-8">
+      {/* فونت و انیمیشن گرادیان متن */}
+      <style>{`
+        .rainbowText {
+          background: linear-gradient(90deg,#ff2d55,#ffcc00,#00e5ff,#7a5cff,#ff2d55);
+          background-size: 400% 100%;
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+          animation: rainbowShift 8s linear infinite;
+          text-shadow: 0 1px 18px rgba(0,0,0,0.35);
+          letter-spacing: -0.01em;
+        }
+        @keyframes rainbowShift { 
+          0% { background-position: 0% 50%; } 
+          100% { background-position: 100% 50%; }
+        }
+      `}</style>
+
       <div className="container mx-auto px-4">
 
-        {/* ========= Scroll-driven videos with split-screen texts ========= */}
+        {/* ========= سکشن ویدئو + گاترهای متنی ========= */}
         <section ref={railRef} className="relative mb-12 h-[320vh]">
-          <div className="sticky top-0 h-screen overflow-hidden flex items-center justify-center">
-            {/* Videos */}
+          <div className="sticky top-0 h-screen overflow-hidden">
+            {/* ویدیوها */}
             <ScrollVideo src="/film4.mp4" a={0.00} b={0.34} progress={progress} />
             <ScrollVideo src="/film5.mp4" a={0.33} b={0.67} progress={progress} />
             <ScrollVideo src="/film6.mp4" a={0.66} b={1.00} progress={progress} />
 
-            {/* Gradient overlay */}
+            {/* گرادینت ملایم لبه‌ها روی خود ویدئو */}
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_46%,rgba(0,0,0,0.55)_100%)]" />
 
-            {/* Split-screen texts */}
-            {textBlocks.map((block, i) => {
-              const opacity = segOpacityOverlap(progress, block.range[0], block.range[1], 0.1);
-              const sideClass =
-                block.align === "right"
-                  ? "right-12 text-right"
-                  : "left-12 text-left";
+            {/* گاترهای مشکی ثابت دو طرف (برای متن) */}
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-[18vw] hidden md:block bg-black"></div>
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-[18vw] hidden md:block bg-black"></div>
+
+            {/* متن‌ها داخل گاترها، با حرکت عمودی و فید */}
+            {textBlocks.map((b, i) => {
+              const [a, c] = b.range;
+              const op = segOpacityOverlap(progress, a, c, 0.12);
+              const t  = segProgress(progress, a, c);           // 0..1 داخل بازه
+              const y  = (t * 40 - 20);                          // -20vh → +20vh
+              const sideBase = b.side === 'left'
+                ? { left: '2vw', textAlign: 'left' as const }
+                : { right: '2vw', textAlign: 'right' as const };
               return (
                 <div
                   key={i}
-                  className={`absolute top-1/2 transform -translate-y-1/2 max-w-md text-white transition-all duration-700`}
+                  className="pointer-events-none absolute top-1/2 hidden md:block"
                   style={{
-                    opacity,
+                    ...sideBase,
+                    width: '16vw',
+                    transform: `translateY(calc(-50% + ${y}vh))`,
+                    opacity: op,
                   }}
                 >
-                  <p
-                    className={`text-2xl md:text-3xl font-bold drop-shadow-xl ${sideClass}`}
-                  >
-                    {block.text}
-                  </p>
+                  <div className="rainbowText font-semibold leading-tight"
+                       style={{ fontSize: 'clamp(18px,1.6vw,28px)' }}>
+                    {b.text}
+                  </div>
                 </div>
               );
             })}
 
+            {/* راهنمای اسکرول (وسط پایین) */}
             <div className="absolute bottom-6 left-0 right-0 text-center text-xs md:text-sm text-white/80">
               Scroll to explore
             </div>
           </div>
         </section>
-        {/* =================== پایان سکشن ویدیو =================== */}
+        {/* =================== پایان سکشن ویدئو =================== */}
 
-        {/* ======= بقیه‌ی محتوای اصلی (بدون تغییر) ======= */}
+        {/* ======= بقیهٔ محتوای قبلی (بدون تغییر) ======= */}
         <div className="text-center mb-12">
           <Badge variant="secondary" className="mb-4">
             <Sparkles className="h-3 w-3 mr-1" />
