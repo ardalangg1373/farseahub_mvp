@@ -16,7 +16,6 @@ function FarsiCoinHero() {
     if (v.paused) v.play().catch(() => {});
   };
 
-  // slogans
   const slogansLeft = [
     "Frictionless payments across cultural hubs",
     "Community-owned, not platform-owned",
@@ -27,7 +26,6 @@ function FarsiCoinHero() {
     "Seamless bridge to games and marketplaces",
   ];
 
-  // timings
   const CYCLE = 10;
   const STAGGER = 2.2;
 
@@ -40,11 +38,11 @@ function FarsiCoinHero() {
           100% { color: #000000; }
         }
         @keyframes fadeSlide {
-          0%   { opacity: 0; transform: translateY(8px); }
+          0%   { opacity: 0; transform: translateY(12px); }
           8%   { opacity: 1; transform: translateY(0); }
           30%  { opacity: 1; transform: translateY(0); }
-          38%  { opacity: 0; transform: translateY(-6px); }
-          100% { opacity: 0; transform: translateY(-6px); }
+          38%  { opacity: 0; transform: translateY(-10px); }
+          100% { opacity: 0; transform: translateY(-10px); }
         }
         .animate-colorCycle {
           animation: colorCycle 3.2s ease-in-out infinite;
@@ -55,7 +53,7 @@ function FarsiCoinHero() {
           animation-iteration-count: infinite;
           animation-duration: ${CYCLE}s;
           will-change: opacity, transform;
-          text-shadow: 0 0 12px rgba(255,255,255,0.25);
+          text-shadow: 0 0 16px rgba(255,255,255,0.25);
         }
         @media (prefers-reduced-motion: reduce) {
           .animate-colorCycle { animation: none; }
@@ -83,12 +81,12 @@ function FarsiCoinHero() {
       />
 
       {/* Left slogans */}
-      <div className="absolute left-4 md:left-8 top-0 bottom-0 z-10 flex items-center pointer-events-none">
-        <div className="flex flex-col gap-3 md:gap-4 max-w-xs md:max-w-sm">
+      <div className="absolute left-6 md:left-12 top-0 bottom-0 z-10 flex items-center pointer-events-none">
+        <div className="flex flex-col gap-5 md:gap-6 max-w-sm md:max-w-md">
           {slogansLeft.map((t, i) => (
             <div
               key={`L-${i}`}
-              className="slogan rounded-2xl px-3 py-2 md:px-4 md:py-2.5 text-sm md:text-base font-semibold animate-colorCycle"
+              className="slogan px-4 py-2 md:px-5 md:py-3 text-xl md:text-3xl font-extrabold animate-colorCycle"
               style={{ animationDelay: `${i * STAGGER}s` }}
             >
               {t}
@@ -98,12 +96,12 @@ function FarsiCoinHero() {
       </div>
 
       {/* Right slogans */}
-      <div className="absolute right-4 md:right-8 top-0 bottom-0 z-10 flex items-center pointer-events-none">
-        <div className="flex flex-col items-end gap-3 md:gap-4 max-w-xs md:max-w-sm text-right">
+      <div className="absolute right-6 md:right-12 top-0 bottom-0 z-10 flex items-center pointer-events-none">
+        <div className="flex flex-col items-end gap-5 md:gap-6 max-w-sm md:max-w-md text-right">
           {slogansRight.map((t, i) => (
             <div
               key={`R-${i}`}
-              className="slogan rounded-2xl px-3 py-2 md:px-4 md:py-2.5 text-sm md:text-base font-semibold animate-colorCycle"
+              className="slogan px-4 py-2 md:px-5 md:py-3 text-xl md:text-3xl font-extrabold animate-colorCycle"
               style={{ animationDelay: `${(i + slogansLeft.length) * STAGGER}s` }}
             >
               {t}
@@ -115,7 +113,7 @@ function FarsiCoinHero() {
       {/* mute/unmute */}
       <button
         onClick={toggleMute}
-        className="absolute bottom-6 right-6 z-20 rounded-xl px-4 py-2 text-sm font-semibold border border-white/20 bg-black/40 text-white hover:bg-black/60 transition"
+        className="absolute bottom-6 right-6 z-20 rounded-xl px-4 py-2 text-base md:text-lg font-semibold border border-white/20 bg-black/40 text-white hover:bg-black/60 transition"
         style={{ backdropFilter: "blur(6px)" }}
       >
         {muted ? "🔊 Unmute" : "🔇 Mute"}
