@@ -22,7 +22,7 @@ export default function Footer() {
 
   return (
     <footer className="relative mt-20 text-zinc-300 overflow-hidden">
-      {/* ── BG: Video layer (behind) ───────────────────────── */}
+      {/* BG: Video layer (behind) */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-30">
         <video
           className="h-full w-full object-cover"
@@ -35,7 +35,7 @@ export default function Footer() {
         />
       </div>
 
-      {/* ── Glass + gradients overlay ─────────────────────── */}
+      {/* Glass + gradients overlay */}
       <div
         className="absolute inset-0 -z-20"
         style={{
