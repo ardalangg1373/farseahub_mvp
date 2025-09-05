@@ -1,23 +1,13 @@
-console.log('%c[Header ACTIVE] this is the header you’re seeing', 'color:#22c55e');
-
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, ShoppingBag, MapPin, Heart, User, Sparkles, Wallet } from 'lucide-react';
+import { Menu, ShoppingBag, MapPin, Heart, User, Sparkles } from 'lucide-react';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const [walletAddr, setWalletAddr] = useState<string | null>(null); // mock wallet
   const location = useLocation();
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 6);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
 
   const navigation = [
     { name: 'Home', href: '/', icon: null },
@@ -29,171 +19,118 @@ const Header = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  const shortAddr = (addr: string) => addr.slice(0, 6) + '…' + addr.slice(-4);
-  const toggleMockWallet = () => {
-    if (walletAddr) setWalletAddr(null);
-    else setWalletAddr('addr1qxy23k9v0m4c89test9cardano99xyz');
-  };
-
   return (
-    <header
-      className={[
-        'sticky top-0 z-50 w-full transition-all duration-300',
-        // شیشه‌ای + پس‌زمینه ملایم (پررنگ‌تر وقتی اسکرول می‌کنی)
-        scrolled
-          ? 'bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm'
-          : 'bg-background/40 backdrop-blur supports-[backdrop-filter]:bg-background/30',
-        scrolled ? 'h-14' : 'h-20',
-        'border-b border-border/40'
-      ].join(' ')}
-      role="navigation"
-      aria-label="Main"
-    >
-      <div className="container flex h-full items-center justify-between">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-16 items-center justify-between">
         {/* Logo + Brand */}
-        <Link to="/" className="flex items-center gap-3">
+        <Link to="/" className="flex items-center space-x-3">
           <img
-            src="/logoasli1373.png"
-            alt="arseahub logo"
-            className="h-9 w-auto"
+            src="/assets/website_logo.jpg"
+            alt="FarSeaHub Logo"
+            className="h-10 w-auto"
             onError={(e) => {
-              const target = e.currentTarget as HTMLImageElement;
+              // Fallback to text logo if image fails to load
+              const target = e.currentTarget;
               target.style.display = 'none';
+              const fallback = target.nextElementSibling as HTMLElement | null;
+              if (fallback) fallback.style.display = 'flex';
             }}
           />
-          <span className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-pink-500 to-purple-500">
-            arseahub
+          <div className="h-8 w-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg items-center justify-center hidden">
+            <span className="text-white font-bold text-sm">FS</span>
+          </div>
+          <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            FarSeaHub
           </span>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-2">
+        <nav className="hidden md:flex items-center space-x-6">
           {navigation.map((item) => {
             const Icon = item.icon as any;
-            const active = isActive(item.href);
             return (
               <Link
                 key={item.name}
                 to={item.href}
-                className={[
-                  'relative px-3 py-2 rounded-md text-sm font-medium transition-colors',
-                  active
-                    ? 'text-foreground'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                ].join(' ')}
+                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  isActive(item.href)
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                }`}
               >
-                <span className="flex items-center gap-2">
-                  {Icon && <Icon className="h-4 w-4" />}
-                  {item.name}
-                </span>
-                {/* underline indicator */}
-                <span
-                  className={[
-                    'absolute left-3 right-3 -bottom-[2px] h-[2px] rounded-full transition-all',
-                    active ? 'bg-primary scale-x-100 opacity-100' : 'bg-primary/60 scale-x-0 opacity-0'
-                  ].join(' ')}
-                />
+                {Icon && <Icon className="h-4 w-4" />}
+                <span>{item.name}</span>
               </Link>
             );
           })}
         </nav>
 
-        {/* Desktop Actions */}
-        <div className="hidden md:flex items-center gap-3">
-          {/* Wallet (mock) */}
-          <Button variant={walletAddr ? 'outline' : 'default'} onClick={toggleMockWallet}>
-            <Wallet className="h-4 w-4 mr-2" />
-            {walletAddr ? shortAddr(walletAddr) : 'Connect Wallet'}
-          </Button>
-
-          {/* Auth / Profile */}
-          {walletAddr ? (
-            <Link to="/profile">
-              <Button variant="ghost" className="gap-2">
-                <User className="h-4 w-4" />
-                Profile
-              </Button>
-            </Link>
-          ) : (
-            <>
-              <Link to="/login">
-                <Button variant="ghost">Login</Button>
-              </Link>
-              <Link to="/signup">
-                <Button>Sign Up</Button>
-              </Link>
-            </>
-          )}
+        {/* Desktop Auth Buttons and Language Switcher */}
+        <div className="hidden md:flex items-center space-x-4">
+          <LanguageSwitcher />
+          <Link to="/login">
+            <Button variant="ghost">Login</Button>
+          </Link>
+          <Link to="/signup">
+            <Button>Sign Up</Button>
+          </Link>
+          <Link to="/profile">
+            <Button variant="outline" size="icon">
+              <User className="h-4 w-4" />
+            </Button>
+          </Link>
         </div>
 
         {/* Mobile Menu */}
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon" aria-label="Open menu">
+            <Button variant="ghost" size="icon">
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-[300px] sm:w-[380px]">
-            <div className="flex items-center gap-2 mb-6">
-              <img src="/logoasli1373.png" alt="arseahub logo" className="h-8 w-auto" />
-              <span className="text-lg font-semibold">arseahub</span>
-            </div>
-
-            <div className="flex flex-col space-y-2">
+          <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+            <div className="flex flex-col space-y-4 mt-8">
               {navigation.map((item) => {
                 const Icon = item.icon as any;
-                const active = isActive(item.href);
                 return (
                   <Link
                     key={item.name}
                     to={item.href}
                     onClick={() => setIsOpen(false)}
-                    className={[
-                      'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors',
-                      active
+                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                      isActive(item.href)
                         ? 'bg-primary text-primary-foreground'
-                        : 'text-foreground hover:bg-muted'
-                    ].join(' ')}
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                    }`}
                   >
                     {Icon && <Icon className="h-5 w-5" />}
-                    {item.name}
+                    <span>{item.name}</span>
                   </Link>
                 );
               })}
-            </div>
 
-            <div className="mt-6 border-t pt-4 space-y-2">
-              <Button
-                className="w-full justify-start gap-2"
-                variant={walletAddr ? 'outline' : 'default'}
-                onClick={() => {
-                  toggleMockWallet();
-                  setIsOpen(false);
-                }}
-              >
-                <Wallet className="h-4 w-4" />
-                {walletAddr ? shortAddr(walletAddr) : 'Connect Wallet'}
-              </Button>
+              <div className="border-t pt-4 space-y-2">
+                <div className="px-4 py-2">
+                  <LanguageSwitcher />
+                </div>
 
-              {walletAddr ? (
+                <Link to="/login" onClick={() => setIsOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start">
+                    Login
+                  </Button>
+                </Link>
+
+                <Link to="/signup" onClick={() => setIsOpen(false)}>
+                  <Button className="w-full">Sign Up</Button>
+                </Link>
+
                 <Link to="/profile" onClick={() => setIsOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start gap-2">
-                    <User className="h-4 w-4" />
+                  <Button variant="outline" className="w-full justify-start">
+                    <User className="h-4 w-4 mr-2" />
                     Profile
                   </Button>
                 </Link>
-              ) : (
-                <>
-                  <Link to="/login" onClick={() => setIsOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start">
-                      Login
-                    </Button>
-                  </Link>
-                  <Link to="/signup" onClick={() => setIsOpen(false)}>
-                    <Button className="w-full">Sign Up</Button>
-                  </Link>
-                </>
-              )}
+              </div>
             </div>
           </SheetContent>
         </Sheet>
@@ -203,3 +140,5 @@ const Header = () => {
 };
 
 export default Header;
+
+
