@@ -1,5 +1,7 @@
 import { Toaster } from '@/components/ui/sonner';
+
 import "./App.css";
+
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
@@ -7,6 +9,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+
 import Home from '@/pages/Home';
 import Marketplace from '@/pages/Marketplace';
 import Tourism from '@/pages/Tourism';
@@ -16,6 +19,10 @@ import Login from '@/pages/Login';
 import Signup from '@/pages/Signup';
 import Profile from '@/pages/Profile';
 import NotFound from '@/pages/NotFound';
+
+// صفحات جدید
+import Whitepaper from '@/pages/Whitepaper';
+import FarsiCoin from '@/pages/FarsiCoin';
 
 const queryClient = new QueryClient();
 
@@ -47,6 +54,11 @@ const App = () => (
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/profile" element={<Profile />} />
+
+                {/* صفحات جدید */}
+                <Route path="/whitepaper" element={<Whitepaper />} />
+                <Route path="/farsicoin" element={<FarsiCoin />} />
+
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>
