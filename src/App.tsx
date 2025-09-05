@@ -21,16 +21,14 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    {/* دارک پیش‌فرض */}
     <ThemeProvider defaultTheme="dark" storageKey="farseahub-theme">
       <TooltipProvider>
-        {/* توستر هم دارک */}
         <Toaster theme="dark" />
 
         <BrowserRouter>
-          {/* پس‌زمینهٔ مشکی + گرادیان خیلی لطیف قرمز */}
+          {/* پس‌زمینه‌ی مشکی خالص (هم‌رنگ لوگو) با هاله قرمز لوکس */}
           <div
-            className="min-h-screen flex flex-col text-zinc-100 bg-[#0B0B0F]"
+            className="min-h-screen flex flex-col text-zinc-100 bg-black"
             style={{
               backgroundImage:
                 `radial-gradient(40rem 40rem at 90% -10%, rgba(229,9,20,0.12), transparent 60%),
