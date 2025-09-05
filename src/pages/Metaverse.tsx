@@ -30,8 +30,8 @@ function ScrollVideo({
   const ref = useRef<HTMLVideoElement | null>(null);
   const opacity = segOpacityOverlap(progress, a, b, ov);
 
-  // زوم ثابت + حرکت نرم
-  const baseScale = 1.15; 
+  // زوم ثابت بزرگ‌تر + حرکت نرم
+  const baseScale = 1.25; // افزایش از 1.15 به 1.25
   const scale = baseScale + (1.0 - baseScale) * opacity * 0.05;
 
   useEffect(() => {
@@ -70,18 +70,32 @@ const Metaverse = () => {
   useEffect(() => {
     const el = railRef.current;
     if (!el) return;
+
+    let target = 0;
+    let current = 0;
+    let raf: number;
+
+    const update = () => {
+      // lerp → نرم کردن حرکت
+      current += (target - current) * 0.08; // ضریب کوچکتر = نرم‌تر
+      setProgress(current);
+      raf = requestAnimationFrame(update);
+    };
+
     const onScroll = () => {
       const top = el.offsetTop;
       const h = el.offsetHeight;
       const vh = window.innerHeight;
       const y = window.scrollY;
-      const p = clamp((y - top) / (h - vh), 0, 1);
-      setProgress(p);
+      target = clamp((y - top) / (h - vh), 0, 1);
     };
-    onScroll();
+
+    update();
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll);
+
     return () => {
+      cancelAnimationFrame(raf);
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
     };
@@ -98,7 +112,7 @@ const Metaverse = () => {
             <ScrollVideo src="/film5.mp4" a={0.33} b={0.67} progress={progress} ov={0.08} />
             <ScrollVideo src="/film6.mp4" a={0.66} b={1.00} progress={progress} ov={0.08} />
 
-            {/* گرادینت خیلی ملایم روی لبه‌ها */}
+            {/* گرادینت بسیار ملایم روی لبه‌ها */}
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_46%,rgba(0,0,0,0.55)_100%)]" />
 
             <div className="absolute bottom-6 left-0 right-0 text-center text-xs md:text-sm text-white/80">
