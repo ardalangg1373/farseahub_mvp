@@ -5,28 +5,48 @@ import { Badge } from '@/components/ui/badge';
 import { Heart, X, MapPin, MessageCircle, Users, Shield, Volume2, VolumeX } from 'lucide-react';
 
 /* ===========================
-   HERO: Two videos with audio + soft crossfade (film11 & film12)
+   HERO: film11 + film12 from /public (root) with audio + soft crossfade
 =========================== */
-function VideoHeroDuo() {
+function VideoHeroDuo({
+  srcA = '/film11.mp4',
+  srcB = '/film12.mp4',
+}: {
+  srcA?: string;
+  srcB?: string;
+}) {
   const vidA = useRef<HTMLVideoElement | null>(null);
   const vidB = useRef<HTMLVideoElement | null>(null);
-  const [active, setActive] = useState<0 | 1>(0); // 0 -> A (film11), 1 -> B (film12)
+  const [active, setActive] = useState<0 | 1>(0); // 0 -> A, 1 -> B
   const [muted, setMuted] = useState(true);
 
   const safePlay = (v: HTMLVideoElement | null) => v?.play().catch(() => {});
+
+  const wireDiagnostics = (v: HTMLVideoElement | null, label: string) => {
+    if (!v) return;
+    v.oncanplay = () => console.info(`[Video] ${label} canplay:`, v.src);
+    v.onerror = () => console.error(`[Video] ${label} ERROR loading:`, v.src);
+    v.onloadedmetadata = () =>
+      console.info(`[Video] ${label} duration=${v.duration}s, muted=${v.muted}`);
+  };
 
   useEffect(() => {
     const a = vidA.current;
     const b = vidB.current;
     if (!a || !b) return;
 
+    wireDiagnostics(a, 'A');
+    wireDiagnostics(b, 'B');
+
     // initial styles
     a.style.opacity = '1';
     b.style.opacity = '0';
 
-    // browsers اجازه نمی‌دن ویدیو با صدا خودش پخش بشه؛ اولش میوت باشه
+    // start muted so autoplay works everywhere (attribute 'muted' is on the tag)
     a.muted = true;
     b.muted = true;
+    a.volume = 1;
+    b.volume = 1;
+
     safePlay(a);
 
     const crossFade = () => {
@@ -36,20 +56,22 @@ function VideoHeroDuo() {
 
       try { next.currentTime = 0; } catch {}
 
-      next.style.transition = 'opacity 1000ms ease';
-      current.style.transition = 'opacity 1000ms ease';
+      next.style.transition = 'opacity 900ms ease';
+      current.style.transition = 'opacity 900ms ease';
 
-      // انتقال صدا به ویدیوی بعدی
+      // audio handover
       if (!muted) {
         current.muted = true;
         next.muted = false;
+        next.removeAttribute('muted'); // allow audio on the next
+        next.volume = 1;
       }
 
       next.style.opacity = '1';
       current.style.opacity = '0';
       safePlay(next);
 
-      setActive((prev) => (prev === 0 ? 1 : 0));
+      setActive((p) => (p === 0 ? 1 : 0));
     };
 
     a.addEventListener('ended', crossFade);
@@ -70,15 +92,21 @@ function VideoHeroDuo() {
     const activeEl = active === 0 ? a : b;
     const inactiveEl = active === 0 ? b : a;
 
-    if (activeEl) activeEl.muted = willBeMuted;
+    if (activeEl) {
+      activeEl.muted = willBeMuted;
+      if (!willBeMuted) {
+        // user wants audio: remove attribute (Safari/Chrome sometimes honor attribute over prop)
+        activeEl.removeAttribute('muted');
+        activeEl.volume = 1;
+        if (activeEl.paused) activeEl.play().catch(() => {});
+      }
+    }
     if (inactiveEl) inactiveEl.muted = true;
-
-    if (activeEl?.paused) activeEl.play().catch(() => {});
   };
 
   return (
     <section className="relative w-full h-[55vh] md:h-[70vh] overflow-hidden rounded-xl mb-8 shadow-xl">
-      {/* readability mask */}
+      {/* mask for readability near edges */}
       <div
         className="pointer-events-none absolute inset-0 z-10"
         style={{
@@ -86,24 +114,27 @@ function VideoHeroDuo() {
             'linear-gradient(90deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 70%, rgba(0,0,0,0.5) 100%)',
         }}
       />
-      {/* stacked videos */}
+
+      {/* stacked videos (note: muted attribute kept for autoplay; we remove it only when unmuting) */}
       <video
         ref={vidA}
-        src="/film11.mp4"
+        src={srcA}
         className="absolute inset-0 h-full w-full object-cover"
         playsInline
         preload="auto"
         autoPlay
         loop={false}
+        muted
       />
       <video
         ref={vidB}
-        src="/film12.mp4"
+        src={srcB}
         className="absolute inset-0 h-full w-full object-cover"
         playsInline
         preload="auto"
         autoPlay
         loop={false}
+        muted
       />
 
       {/* Mute / Unmute */}
@@ -178,9 +209,7 @@ function Dating() {
 
   const currentProfile = profiles[currentProfileIndex];
 
-  const handleNext = () => {
-    setCurrentProfileIndex((i) => (i < profiles.length - 1 ? i + 1 : 0));
-  };
+  const handleNext = () => setCurrentProfileIndex((i) => (i < profiles.length - 1 ? i + 1 : 0));
 
   return (
     <div className="min-h-screen py-8">
@@ -189,11 +218,13 @@ function Dating() {
         {/* Header */}
         <div className="mb-6 text-center">
           <h1 className="text-3xl md:text-4xl font-bold mb-2">Persian Dating</h1>
-          <p className="text-lg text-muted-foreground">Connect with Persian singles and build meaningful relationships</p>
+          <p className="text-lg text-muted-foreground">
+            Connect with Persian singles and build meaningful relationships
+          </p>
         </div>
 
-        {/* Videos */}
-        <VideoHeroDuo />
+        {/* Videos from /public root */}
+        <VideoHeroDuo srcA="/film11.mp4" srcB="/film12.mp4" />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Profile Card */}
