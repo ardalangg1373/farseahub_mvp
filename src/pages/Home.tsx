@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +8,7 @@ import {
 } from 'lucide-react';
 
 /* ======================= */
-/* Helpers */
+/* Helpers (Reveal)        */
 /* ======================= */
 
 function Reveal({ children, className = '' }: { children: React.ReactNode; className?: string }) {
@@ -47,57 +46,132 @@ function Reveal({ children, className = '' }: { children: React.ReactNode; class
 }
 
 /* ======================= */
-/* Neon / Matrix styles (only for side texts) */
+/* Matrix side columns     */
 /* ======================= */
-function NeonStyles() {
+
+const LEFT_TEXT = [
+  'For too long,',
+  'mainstream',
+  'media has told',
+  'our story',
+  'for us.'
+];
+
+const RIGHT_TEXT = [
+  'RoyalVerse —',
+  'the most luxurious',
+  'metaverse on Cardano.',
+  'Built for Middle Eastern',
+  'storytellers.'
+];
+
+function MatrixStrip({
+  side,
+  lines,
+}: {
+  side: 'left' | 'right';
+  lines: string[];
+}) {
+  // ریویل مخصوص ستون‌ها
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) setOn(true);
+      },
+      { threshold: 0.15 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   return (
-    <style>{`
-      @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&display=swap');
+    <div
+      className={`pointer-events-none absolute inset-y-0 ${
+        side === 'left' ? 'left-0' : 'right-0'
+      } z-30 hidden md:flex w-[min(22vw,280px)] items-center justify-center`}
+    >
+      {/* کانال شیشه‌ای + خطوط ماتریکسی */}
+      <div className="relative h-[88%] w-full overflow-hidden rounded-xl">
+        {/* خطوط عمودی ماتریکسی */}
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              // خط‌های عمودی + اندک گِلو سبز
+              'repeating-linear-gradient(to right, rgba(0,255,170,0.18) 0 1px, transparent 1px 9px), radial-gradient(80% 100% at 50% 50%, rgba(0,255,170,0.10), transparent 70%)',
+            filter: 'saturate(120%)',
+            opacity: 0.55,
+            // حرکت خیلی لطیف خطوط
+            backgroundSize: 'auto, 100% 100%',
+            animation: 'matrixDrift 18s linear infinite',
+          }}
+        />
+        {/* شیشه‌ای/بلور */}
+        <div className="absolute inset-0 bg-black/35 backdrop-blur-sm" />
+        {/* ماسک برای فید بالا/پایین */}
+        <div
+          className="absolute inset-0"
+          style={{
+            WebkitMaskImage:
+              'linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)',
+            maskImage:
+              'linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)',
+          }}
+        />
+        {/* متن عمودی */}
+        <div
+          ref={ref}
+          className={`relative z-10 flex h-full w-full items-center justify-center transition-all duration-700 ${
+            on ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
+          }`}
+        >
+          <p
+            className="font-semibold tracking-wider"
+            style={{
+              writingMode: 'vertical-rl',
+              textOrientation: 'mixed',
+              // اگر در پروژه برای متاورس فونت تعریف شده، از متغیر زیر استفاده می‌کنیم
+              // وگرنه مونو/تِک فونت‌های نزدیک
+              fontFamily:
+                'var(--matrix-font, "Share Tech Mono", "Orbitron", monospace)',
+              lineHeight: 1.05,
+              letterSpacing: '0.8px',
+              color: '#7affc4',
+              textShadow:
+                '0 0 6px rgba(0,255,170,.55), 0 0 18px rgba(0,255,170,.35)',
+            }}
+          >
+            {lines.join('   ')}
+          </p>
+        </div>
+      </div>
 
-      .neonText{
-        font-family:'Orbitron',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-        color:#8ffcff;
-        text-shadow:
-          0 0 4px rgba(0,255,200,0.85),
-          0 0 12px rgba(0,255,180,0.65),
-          0 0 28px rgba(0,220,160,0.45);
-        animation: neonPulse 6s ease-in-out infinite;
-        line-height:1.15;
-      }
-      @keyframes neonPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.25)}}
-
-      /* باران سبز سبک ماتریکس پشتِ متن (خیلی ملایم) */
-      .matrixRainInline{
-        position:absolute; inset:-10px -16px;
-        background:
-          repeating-linear-gradient(
-            180deg,
-            rgba(0,255,120,0.16) 0px,
-            rgba(0,255,120,0.16) 2px,
-            rgba(0,0,0,0) 3px,
-            rgba(0,0,0,0) 9px
-          );
-        opacity:0.35; mix-blend-mode:screen; border-radius:10px;
-        animation: rainShift 6s linear infinite;
-        pointer-events:none;
-      }
-      @keyframes rainShift{from{background-position:0 0} to{background-position:0 1200px}}
-    `}</style>
+      {/* keyframes محلی برای حرکت خطوط */}
+      <style>
+        {`@keyframes matrixDrift { 
+            0% { background-position: 0 0, 0 0; } 
+            100% { background-position: 120px 0, 0 0; } 
+          }`}
+      </style>
+    </div>
   );
 }
 
 /* ======================= */
-/* New scroll-driven hero  */
+/* 3-video scroll hero     */
 /* ======================= */
 
 function VideoScrollSequence() {
   const wrapRef = useRef<HTMLDivElement | null>(null);
-
-  /* Fix video paths so they actually play */
   const [srcs, setSrcs] = useState([
-    { primary: '/film1.mp4', fallback: '/videos/film1.mp4', url: '/film1.mp4' },
-    { primary: '/film2.mp4', fallback: '/videos/film2.mp4', url: '/film2.mp4' },
-    { primary: '/film3.mp4', fallback: '/videos/film3.mp4', url: '/film3.mp4' },
+    { primary: '/film1.mp4.mp4', fallback: '/flim1.mp4.mp4', url: '/film1.mp4.mp4' },
+    { primary: '/film2.mp4.mp4', fallback: '/flim2.mp4.mp4', url: '/film2.mp4.mp4' },
+    { primary: '/film3.mp4.mp4', fallback: '/flim3.mp4.mp4', url: '/film3.mp4.mp4' },
   ]);
   const [progress, setProgress] = useState(0);
 
@@ -136,21 +210,13 @@ function VideoScrollSequence() {
 
   const { a, b, c } = phase(progress);
 
-  // تغییر: ویدئوی اول کمی کوچک‌تر نمایش داده شود
+  // (بدون تغییرِ منطق ویدیوها) — فقط همان اسکیل قبلی
   const scale = (w: number, idx: number) => {
-    if (idx === 0) return `scale(${0.9 + w * 0.05})`; // ~90% تا 95%
-    return `scale(${1 + w * 0.06})`; // بقیه مانند قبل
+    if (idx === 0) return `scale(${0.9 + w * 0.05})`;
+    return `scale(${1 + w * 0.06})`;
   };
-
   const blur = (w: number) => `blur(${(1 - w) * 6}px)`;
   const op = (w: number) => w;
-
-  /* برای نرمیِ بیشتر متن‌ها کمی هموارسازی روی وزن‌ها اعمال می‌کنیم */
-  const smooth = (w: number) => Math.max(0, Math.min(1, Math.pow(w, 1.25)));
-
-  const wA = smooth(a); // برای فیلم 1
-  const wB = smooth(b); // برای فیلم 2
-  const wC = smooth(c); // برای فیلم 3
 
   return (
     <section ref={wrapRef} className="relative h-[420vh] w-full overflow-visible">
@@ -185,70 +251,12 @@ function VideoScrollSequence() {
             );
           })}
 
-          {/* ====== Side Neon Texts (Matrix + Orbitron) ====== */}
-          {/* فیلم 1: جمله 1 چپ، جمله 2 راست */}
-          <div
-            className="pointer-events-none absolute inset-y-0 left-4 md:left-6 flex items-center z-10"
-            style={{ opacity: wA }}
-          >
-            <div className="relative">
-              <span className="matrixRainInline" />
-              <p className="neonText text-[clamp(18px,1.8vw,28px)] font-bold">
-                RoyalVerse is the most luxurious metaverse on Cardano.
-              </p>
-            </div>
-          </div>
-          <div
-            className="pointer-events-none absolute inset-y-0 right-4 md:right-6 flex items-center z-10"
-            style={{ opacity: wA }}
-          >
-            <div className="relative text-right">
-              <span className="matrixRainInline" />
-              <p className="neonText text-[clamp(18px,1.8vw,28px)] font-bold">
-                Built for Middle Eastern storytellers — open to the world.
-              </p>
-            </div>
-          </div>
+          {/* ستون‌های ماتریکسیِ عمودی – بدون دست‌زدن به ویدیوها */}
+          <MatrixStrip side="left"  lines={LEFT_TEXT} />
+          <MatrixStrip side="right" lines={RIGHT_TEXT} />
 
-          {/* فیلم 2: جمله 3 چپ */}
-          <div
-            className="pointer-events-none absolute inset-y-0 left-4 md:left-6 flex items-center z-10"
-            style={{ opacity: wB }}
-          >
-            <div className="relative">
-              <span className="matrixRainInline" />
-              <p className="neonText text-[clamp(18px,1.8vw,28px)] font-bold">
-                Powered by FarsiCoin and community governance.
-              </p>
-            </div>
-          </div>
-
-          {/* فیلم 3: جمله 4 چپ، جمله 5 راست */}
-          <div
-            className="pointer-events-none absolute inset-y-0 left-4 md:left-6 flex items-center z-10"
-            style={{ opacity: wC }}
-          >
-            <div className="relative">
-              <span className="matrixRainInline" />
-              <p className="neonText text-[clamp(18px,1.8vw,28px)] font-bold">
-                Designed with taste, crafted with tech.
-              </p>
-            </div>
-          </div>
-          <div
-            className="pointer-events-none absolute inset-y-0 right-4 md:right-6 flex items-center z-10"
-            style={{ opacity: wC }}
-          >
-            <div className="relative text-right">
-              <span className="matrixRainInline" />
-              <p className="neonText text-[clamp(18px,1.8vw,28px)] font-bold">
-                Join early. Build legacy.
-              </p>
-            </div>
-          </div>
-
-          {/* راهنمای اسکرول */}
-          <div className="pointer-events-none absolute bottom-6 left-0 right-0 z-20 flex justify-center">
+          {/* Scroll hint */}
+          <div className="pointer-events-none absolute bottom-6 left-0 right-0 z-10 flex justify-center">
             <div className="rounded-full bg-black/40 px-4 py-2 text-xs text-white/90 backdrop-blur">
               Scroll to explore
             </div>
@@ -258,6 +266,10 @@ function VideoScrollSequence() {
     </section>
   );
 }
+
+/* ======================= */
+/* Home page (بقیه بدون تغییر) */
+/* ======================= */
 
 const Home = () => {
   const mainFeatures = [
@@ -363,10 +375,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Load neon/matrix styles */}
-      <NeonStyles />
-
-      {/* New 3-video scroll hero */}
+      {/* 3-video scroll hero با ستون‌های ماتریکسی */}
       <VideoScrollSequence />
 
       {/* Tagline */}
@@ -381,7 +390,7 @@ const Home = () => {
         </Reveal>
       </section>
 
-      {/* Hero Section (static copy as before) */}
+      {/* Hero Section (static copy as قبل) */}
       <section className="relative py-20 px-4 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950 dark:via-purple-950 dark:to-pink-950">
         <div className="container mx-auto text-center">
           <Badge variant="secondary" className="mb-4">
@@ -421,6 +430,7 @@ const Home = () => {
               From shopping authentic goods to planning cultural trips, finding love, and exploring virtual worlds - FarSeaHub brings the Persian community together.
             </p>
           </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {mainFeatures.map((feature, index) => {
               const Icon = feature.icon;
