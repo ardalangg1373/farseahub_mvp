@@ -4,6 +4,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/components/theme-provider';
+
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Home from '@/pages/Home';
@@ -20,12 +21,24 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="light" storageKey="farseahub-theme">
+    {/* دارک پیش‌فرض */}
+    <ThemeProvider defaultTheme="dark" storageKey="farseahub-theme">
       <TooltipProvider>
-        <Toaster />
+        {/* توستر هم دارک */}
+        <Toaster theme="dark" />
+
         <BrowserRouter>
-          <div className="min-h-screen flex flex-col">
+          {/* پس‌زمینهٔ مشکی + گرادیان خیلی لطیف قرمز */}
+          <div
+            className="min-h-screen flex flex-col text-zinc-100 bg-[#0B0B0F]"
+            style={{
+              backgroundImage:
+                `radial-gradient(40rem 40rem at 90% -10%, rgba(229,9,20,0.12), transparent 60%),
+                 radial-gradient(30rem 30rem at -10% 110%, rgba(229,9,20,0.06), transparent 60%)`
+            }}
+          >
             <Header />
+
             <main className="flex-1">
               <Routes>
                 <Route path="/" element={<Home />} />
@@ -39,6 +52,7 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>
+
             <Footer />
           </div>
         </BrowserRouter>
@@ -48,5 +62,3 @@ const App = () => (
 );
 
 export default App;
-
-
