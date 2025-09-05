@@ -1,14 +1,9 @@
-FarseaHub Footer — FIXED (Glass + Video)
-Replace your component with this file (fixes Vercel SyntaxError from escaped backticks). Path: src/components/Footer.tsx
-// src/components/Footer.tsx
+
 import { Link } from "react-router-dom";
 import { useMemo, useRef, useEffect } from "react";
 import { Twitter, Youtube, Send, Disc, ChevronRight, Crown, Code2, PenTool, Shield, Globe } from "lucide-react";
 
-/**
- * FarseaHub — Ultra Glass Footer with Video Backdrop (FIXED)
- * Fix: removed escaped backticks in template literals inside JSX (alt attributes).
- */
+
 
 const VIDEO_SRC = "/film2.mp4.mp4";
 const VIDEO_POSTER: string | undefined = undefined;
