@@ -1,11 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
+
 import { Link } from 'react-router-dom';
+
 import { Button } from '@/components/ui/button';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { Badge } from '@/components/ui/badge';
+
 import {
   ShoppingBag, MapPin, Heart, Users, ArrowRight, Globe, Shield, Zap, Sparkles, Youtube, Play
 } from 'lucide-react';
+
 
 /* ======================= */
 /* Helpers (Reveal)        */
@@ -43,6 +49,7 @@ function Reveal({ children, className = '' }: { children: React.ReactNode; class
   );
 }
 
+
 /* ======================= */
 /* Matrix rain — Red/Black Neon, Glass, Soft edges */
 /* ======================= */
@@ -50,14 +57,14 @@ function Reveal({ children, className = '' }: { children: React.ReactNode; class
 /** شعارها – هر چی خواستی اضافه/کم کن */
 const LEFT_SLOGANS = [
   'For too long,', 'mainstream', 'media has told', 'our story', 'for us.',
-  'We tell our own story.', 'Own the narrative.', 'Culture. Power. Future.',
+  'We tell our own story.', 'Own the narrative.', 'Culture.ARDALAN Power. Future.',
   'From the Middle East — to the world.'
 ];
 
 const RIGHT_SLOGANS = [
   'RoyalVerse —', 'the most luxurious', 'metaverse on Cardano.',
-  'Built for Middle Eastern', 'storytellers — open to the world.',
-  'Create. Trade. Thrive.', 'Luxury x Culture x Web3', 'Community-owned economy.',
+  'Built for Middle Eastern GALEDARI',
+  'Luxury x Culture x Web3', 'Community-owned economy.',
 ];
 
 function MatrixRain({
@@ -84,9 +91,10 @@ function MatrixRain({
     };
     fit();
 
-    // نئون قرمز
-    const neonColor = '#ff4d6d';
-    const neonGlow  = 'rgba(255, 77, 109, .75)';
+    // 🎯 قرمز تیره لاکچری به‌جای صورتی
+    const deepRed   = '#b1001e';
+    const neonColor = '#ff1a2b';
+    const neonGlow  = 'rgba(255, 26, 43, .82)';
 
     const fontBase = 18;
     const fontSize = Math.max(14, Math.round(fontBase * (window.innerHeight / 900)));
@@ -110,13 +118,24 @@ function MatrixRain({
         ctx.font = `${fontSize}px monospace`;
         ctx.fillStyle = neonColor;
         ctx.shadowColor = neonGlow;
-        ctx.shadowBlur  = 10;
+        ctx.shadowBlur  = 12;
 
         for (let i = 0; i < columns; i++) {
           const word = words[Math.floor(Math.random() * words.length)];
           const x = i * colW;
           const y = drops[i] * fontSize;
 
+          // سایه‌ی دوم خیلی لطیف برای عمق
+          ctx.save();
+          ctx.shadowColor = 'rgba(177, 0, 30, .35)'; // deep red glow
+          ctx.shadowBlur = 22;
+          ctx.fillText(word, x, y);
+          ctx.restore();
+
+          // متن اصلی
+          ctx.fillStyle = neonColor;
+          ctx.shadowColor = neonGlow;
+          ctx.shadowBlur  = 12;
           ctx.fillText(word, x, y);
 
           if (y > canvas.height && Math.random() > 0.975) drops[i] = 0;
@@ -144,19 +163,19 @@ function MatrixRain({
           'linear-gradient(to right, transparent 0, black 14px, black calc(100% - 14px), transparent 100%)',
       }}
     >
-      {/* لایهٔ شیشه‌ای/مات با گلو خیلی لطیف */}
+      {/* لایهٔ شیشه‌ای/مات با گلو قرمز تیره */}
       <div
         className="absolute inset-0 rounded-2xl backdrop-blur-md"
         style={{
-          background: 'linear-gradient(180deg, rgba(15,15,20,.55), rgba(15,15,20,.55))',
-          boxShadow: 'inset 0 0 0 1px rgba(255,77,109,.18), 0 0 24px rgba(255,77,109,.10)',
+          background: 'linear-gradient(180deg, rgba(10,10,12,.55), rgba(10,10,12,.55))',
+          boxShadow: 'inset 0 0 0 1px rgba(255,26,43,.20), 0 0 28px rgba(177,0,30,.14)',
         }}
       />
-      {/* هایلایت قرمز ملایم لبه‌ها */}
+      {/* هایلایت قرمز ملایمِ لبه‌ها */}
       <div
         className="absolute inset-0 rounded-2xl pointer-events-none"
         style={{
-          background: 'radial-gradient(120% 60% at 50% 0%, rgba(255,77,109,.10), transparent 60%)',
+          background: 'radial-gradient(120% 60% at 50% 0%, rgba(255,26,43,.12), transparent 60%)',
           mixBlendMode: 'screen',
         }}
       />
@@ -165,6 +184,7 @@ function MatrixRain({
     </div>
   );
 }
+
 
 /* ======================= */
 /* 3-video scroll hero     */
@@ -265,6 +285,7 @@ function VideoScrollSequence() {
     </section>
   );
 }
+
 
 /* ======================= */
 /* Home page               */
