@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, NavLink, Outlet } from "react-router-dom"
 import { Suspense } from "react";
 // import Header from "@/components/Header"; // اگر داری، فعالش کن
 import Home from "./pages/Home"; // ← هوم واقعی
+import Header from '@/components/Header'; // یا '../components/Header'
 
 // --------------- Layout ---------------
 function Layout() {
