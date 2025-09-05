@@ -49,20 +49,17 @@ const Header = () => {
     >
       <div className="container flex h-full items-center justify-between">
         {/* Logo + Brand */}
-        <Link to="/" className="flex items-center gap-3">
-          <img
-            src="/logoasli1373.png"
-            alt="arseahub logo"
-            className="h-9 w-auto"
-            onError={(e) => {
-              const target = e.currentTarget as HTMLImageElement;
-              target.style.display = 'none';
-            }}
-          />
-          <span className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-pink-500 to-purple-500">
-            arseahub
-          </span>
-        </Link>
+       <Link to="/" className="flex items-center gap-1.5">
+  <img
+    src="/logoasli1373.png"
+    alt="arseahub logo"
+    className="h-8 w-auto"
+  />
+  <span className="-ml-1 leading-none text-[20px] font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-pink-500 to-purple-500">
+    arseahub
+  </span>
+</Link>
+
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-2">
